@@ -1,9 +1,11 @@
 package com.adrainty.stock.controller;
 
 import com.adrainty.stock.dto.InstrumentDTO;
+import com.adrainty.stock.dto.KlineDTO;
 import com.adrainty.stock.dto.OrderBookDTO;
 import com.adrainty.stock.exception.GlobalExceptionHandler;
 import com.adrainty.stock.service.InstrumentService;
+import com.adrainty.stock.service.KlineService;
 import com.adrainty.stock.service.OrderBookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,9 +28,10 @@ import java.util.Map;
 @RequestMapping("/market")
 @RequiredArgsConstructor
 public class MarketController {
-    
+
     private final InstrumentService instrumentService;
     private final OrderBookService orderBookService;
+    private final KlineService klineService;
     
     /**
      * 获取所有品种行情
@@ -86,5 +89,19 @@ public class MarketController {
     public ResponseEntity<GlobalExceptionHandler.ApiResult<List<OrderBookDTO>>> getAllOrderBooks() {
         List<OrderBookDTO> orderBooks = orderBookService.getAllOrderBooks();
         return ResponseEntity.ok(GlobalExceptionHandler.ApiResult.success(orderBooks));
+    }
+
+    /**
+     * 获取 K 线数据
+     */
+    @Operation(summary = "获取 K 线数据", description = "获取指定品种的 K 线数据，支持分时、日 K、月 K、年 K")
+    @GetMapping("/kline")
+    public ResponseEntity<GlobalExceptionHandler.ApiResult<List<KlineDTO>>> getKline(
+            @RequestParam Long exchangeId,
+            @RequestParam String instrumentCode,
+            @RequestParam(defaultValue = "1d") String period,
+            @RequestParam(required = false, defaultValue = "100") Integer limit) {
+        List<KlineDTO> klineList = klineService.getKline(exchangeId, instrumentCode, period, limit);
+        return ResponseEntity.ok(GlobalExceptionHandler.ApiResult.success(klineList));
     }
 }

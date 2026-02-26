@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Select, Tag, Spin } from "antd";
 import { LineChartOutlined, CaretUpOutlined, CaretDownOutlined, DashboardOutlined } from "@ant-design/icons";
 import axios from "axios";
+import KlineChart from "../components/KlineChart";
 
 const { Option } = Select;
 
@@ -221,7 +222,7 @@ const Market = () => {
           </div>
         </div>
 
-        {/* 右侧：档口详情 */}
+        {/* 右侧：档口详情和 K 线图 */}
         <div className="orderbook-panel">
           <div className="panel-header">
             <span className="panel-title">
@@ -303,6 +304,11 @@ const Market = () => {
               <p className="empty-text">请选择交易品种查看档口数据</p>
               <p className="empty-subtext">SELECT AN INSTRUMENT TO VIEW ORDER BOOK</p>
             </div>
+          )}
+
+          {/* K 线图表 */}
+          {selectedExchange && selectedInstrument && (
+            <KlineChart exchangeId={selectedExchange} instrumentCode={selectedInstrument} />
           )}
         </div>
       </div>
