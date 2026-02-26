@@ -2873,123 +2873,128 @@ body {
    Ant Design 组件样式覆盖 - 提高优先级
    ===================== */
 
-/* Table 样式覆盖 - 全局深色主题 - 使用更高优先级 */
-:global(.ant-table-wrapper .ant-table),
-:global(.ant-table-wrapper .ant-table table) {
+/* Table 样式覆盖 - 全局深色主题 - 使用 #root 选择器获得更高特异性 */
+/* ID 选择器特异性高于 :where()，可以覆盖 Ant Design 的默认样式 */
+:global(#root .ant-table-wrapper .ant-table),
+:global(#root .ant-table-wrapper .ant-table table) {
   background: transparent !important;
   color: var(--text-secondary) !important;
 }
 
-:global(.ant-table-wrapper .ant-table-thead),
-:global(.ant-table-wrapper .ant-table-thead > tr),
-:global(.ant-table-wrapper .ant-table-thead > tr > th),
-:global(.ant-table-wrapper .ant-table-thead .ant-table-cell) {
+:global(#root .ant-table-wrapper .ant-table) {
+  background: transparent !important;
+}
+
+:global(#root .ant-table-wrapper .ant-table-thead),
+:global(#root .ant-table-wrapper .ant-table-thead > tr),
+:global(#root .ant-table-wrapper .ant-table-thead > tr > th),
+:global(#root .ant-table-wrapper .ant-table-thead .ant-table-cell) {
   background: var(--color-bg-tertiary) !important;
   color: var(--text-secondary) !important;
   font-family: var(--font-mono) !important;
   border-bottom: 1px solid var(--border-color) !important;
 }
 
-:global(.ant-table-wrapper .ant-table-tbody > tr > td),
-:global(.ant-table-wrapper .ant-table-tbody .ant-table-cell) {
+:global(#root .ant-table-wrapper .ant-table-tbody > tr > td),
+:global(#root .ant-table-wrapper .ant-table-tbody .ant-table-cell) {
   background: var(--color-bg-secondary) !important;
   color: var(--text-secondary) !important;
   font-family: var(--font-mono) !important;
   border-bottom: 1px solid var(--border-color) !important;
 }
 
-:global(.ant-table-wrapper .ant-table-tbody > tr:hover) {
+:global(#root .ant-table-wrapper .ant-table-tbody > tr:hover) {
   background: var(--color-bg-tertiary) !important;
 }
 
-:global(.ant-table-wrapper .ant-table-container),
-:global(.ant-table-wrapper .ant-table-cell) {
+:global(#root .ant-table-wrapper .ant-table-container),
+:global(#root .ant-table-wrapper .ant-table-cell) {
   background: transparent !important;
 }
 
-:global(.ant-table-wrapper .ant-table-thead > tr:hover) {
+:global(#root .ant-table-wrapper .ant-table-thead > tr:hover) {
   background: var(--color-bg-tertiary) !important;
 }
 
 /* 测量行 - 隐藏或深色 */
-:global(.ant-table-wrapper .ant-table-measure-row) {
+:global(#root .ant-table-wrapper .ant-table-measure-row) {
   visibility: hidden !important;
   position: absolute !important;
 }
 
-:global(.ant-table-wrapper .ant-table-measure-cell) {
+:global(#root .ant-table-wrapper .ant-table-measure-cell) {
   background: var(--color-bg-tertiary) !important;
 }
 
 /* 空数据状态 */
-:global(.ant-table-wrapper .ant-table-placeholder) {
+:global(#root .ant-table-wrapper .ant-table-placeholder) {
   background: var(--color-bg-secondary) !important;
 }
 
-:global(.ant-table-wrapper .ant-table-placeholder .ant-table-cell) {
+:global(#root .ant-table-wrapper .ant-table-placeholder .ant-table-cell) {
   background: var(--color-bg-secondary) !important;
   border-bottom: 1px solid var(--border-color) !important;
 }
 
-:global(.ant-table-wrapper .ant-empty-description) {
+:global(#root .ant-table-wrapper .ant-empty-description) {
   color: var(--text-tertiary) !important;
 }
 
-:global(.ant-table-wrapper .ant-empty-image) {
+:global(#root .ant-table-wrapper .ant-empty-image) {
   opacity: 0.3;
 }
 
-/* Input 样式覆盖 */
-:global(.ant-input),
-:global(.ant-input-number),
-:global(.ant-input-number-input) {
+/* Input 样式覆盖 - 使用 #root 选择器 */
+:global(#root .ant-input),
+:global(#root .ant-input-number),
+:global(#root .ant-input-number-input) {
   background: var(--color-bg-secondary) !important;
   border-color: var(--border-color) !important;
   color: var(--text-primary) !important;
   font-family: var(--font-mono) !important;
 }
 
-:global(.ant-input:hover),
-:global(.ant-input-number:hover) {
+:global(#root .ant-input:hover),
+:global(#root .ant-input-number:hover) {
   background: var(--color-bg-secondary) !important;
   border-color: var(--border-light) !important;
 }
 
-:global(.ant-input:focus),
-:global(.ant-input-number:focus) {
+:global(#root .ant-input:focus),
+:global(#root .ant-input-number:focus) {
   background: var(--color-bg-secondary) !important;
   border-color: var(--color-primary) !important;
   box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2) !important;
 }
 
-:global(.ant-input::placeholder),
-:global(.ant-input-number::placeholder) {
+:global(#root .ant-input::placeholder),
+:global(#root .ant-input-number::placeholder) {
   color: var(--text-tertiary) !important;
 }
 
-/* Select 样式覆盖 */
-:global(.ant-select-selector) {
+/* Select 样式覆盖 - 使用 #root 选择器 */
+:global(#root .ant-select-selector) {
   background: var(--color-bg-secondary) !important;
   border-color: var(--border-color) !important;
   color: var(--text-primary) !important;
   font-family: var(--font-mono) !important;
 }
 
-:global(.ant-select:hover .ant-select-selector) {
+:global(#root .ant-select:hover .ant-select-selector) {
   border-color: var(--border-light) !important;
 }
 
-:global(.ant-select-focused .ant-select-selector) {
+:global(#root .ant-select-focused .ant-select-selector) {
   border-color: var(--color-primary) !important;
   box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2) !important;
 }
 
-:global(.ant-select-selection-item) {
+:global(#root .ant-select-selection-item) {
   color: var(--text-primary) !important;
   font-family: var(--font-mono) !important;
 }
 
-:global(.ant-select-arrow) {
+:global(#root .ant-select-arrow) {
   color: var(--text-secondary) !important;
 }
 

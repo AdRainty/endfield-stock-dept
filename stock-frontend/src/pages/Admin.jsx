@@ -223,6 +223,40 @@ const Admin = () => {
 
   return (
     <div className="admin-page">
+      {/* 强制覆盖 Ant Design 表格样式的内联样式 */}
+      <style>{`
+        #root .ant-table-wrapper .ant-table,
+        #root .ant-table-wrapper .ant-table table {
+          background: transparent !important;
+          color: var(--text-secondary) !important;
+        }
+        #root .ant-table-wrapper .ant-table-thead > tr > th,
+        #root .ant-table-wrapper .ant-table-thead .ant-table-cell {
+          background: var(--color-bg-tertiary) !important;
+          color: var(--text-secondary) !important;
+        }
+        #root .ant-table-wrapper .ant-table-tbody > tr > td,
+        #root .ant-table-wrapper .ant-table-tbody .ant-table-cell {
+          background: var(--color-bg-secondary) !important;
+          color: var(--text-secondary) !important;
+        }
+        #root .ant-table-wrapper .ant-table-tbody > tr:hover {
+          background: var(--color-bg-tertiary) !important;
+        }
+        #root .ant-table-wrapper .ant-table-placeholder,
+        #root .ant-table-wrapper .ant-table-placeholder .ant-table-cell {
+          background: var(--color-bg-secondary) !important;
+        }
+        #root .ant-table-wrapper .ant-empty-description {
+          color: var(--text-tertiary) !important;
+        }
+        #root .ant-table-wrapper .ant-table-measure-row {
+          visibility: hidden !important;
+        }
+        #root .ant-table-wrapper .ant-table-measure-cell {
+          background: var(--color-bg-tertiary) !important;
+        }
+      `}</style>
       {/* 页面头部 */}
       <div className="page-header">
         <div className="header-title">
