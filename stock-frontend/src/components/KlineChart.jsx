@@ -47,11 +47,12 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
     fetchKline();
   }, [exchangeId, instrumentCode, period]);
 
-  // 实时轮询更新（分时图每 3 秒更新，其他周期每 10 秒更新）
+  // 实时轮询更新（仅分时图每 3 秒更新）
   useEffect(() => {
     if (!exchangeId || !instrumentCode) return;
+    if (period !== "1m") return; // 日 K 及以上周期不需要实时更新
 
-    const pollInterval = period === "1m" ? 3000 : 10000;
+    const pollInterval = 3000;
     const timer = setInterval(fetchKline, pollInterval);
 
     return () => clearInterval(timer);
