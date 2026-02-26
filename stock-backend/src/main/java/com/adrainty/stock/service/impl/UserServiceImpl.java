@@ -3,14 +3,18 @@ package com.adrainty.stock.service.impl;
 import com.adrainty.stock.dto.LoginResponse;
 import com.adrainty.stock.entity.User;
 import com.adrainty.stock.enums.UserRole;
+import com.adrainty.stock.repository.ExchangeRepository;
 import com.adrainty.stock.repository.UserRepository;
 import com.adrainty.stock.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 用户服务实现类
@@ -24,6 +28,12 @@ import java.time.LocalDateTime;
 public class UserServiceImpl implements UserService {
     
     private final UserRepository userRepository;
+    private final ExchangeRepository exchangeRepository;
+    private final CapitalServiceImpl capitalService;
+    private final PositionServiceImpl positionService;
+    
+    @Value("${app.initial-capital:100000}")
+    private BigDecimal initialCapital;
     
     @Override
     @Transactional
@@ -43,6 +53,9 @@ public class UserServiceImpl implements UserService {
             user.setRegisterIp(registerIp);
             userRepository.save(user);
             log.info("新用户注册：openid={}, nickname={}", openid, user.getNickname());
+            
+            // 初始化资金和持仓
+            initUserResources(user.getId());
         } else {
             // 老用户登录
             log.info("用户登录：openid={}, nickname={}", openid, user.getNickname());
@@ -56,6 +69,24 @@ public class UserServiceImpl implements UserService {
             .role(user.getRole().getCode())
             .newUser(newUser)
             .build();
+    }
+    
+    /**
+     * 初始化用户资源（资金和持仓）
+     */
+    private void initUserResources(Long userId) {
+        // 获取所有交易所
+        var exchanges = exchangeRepository.findByStatus(1);
+        
+        for (var exchange : exchanges) {
+            // 初始化资金（每个交易所 10W）
+            capitalService.initCapital(userId, exchange.getId(), initialCapital);
+            
+            // 初始化持仓记录
+            positionService.initPosition(userId, exchange.getId());
+        }
+        
+        log.info("初始化用户资源完成：userId={}", userId);
     }
     
     @Override

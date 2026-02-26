@@ -28,6 +28,12 @@ public class InstrumentServiceImpl implements InstrumentService, CommandLineRunn
     private final InstrumentRepository instrumentRepository;
     
     @Override
+    public List<InstrumentDTO> getAllInstruments() {
+        List<Instrument> instruments = instrumentRepository.findAll();
+        return instruments.stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+    
+    @Override
     public List<InstrumentDTO> getByExchangeId(Long exchangeId) {
         List<Instrument> instruments = instrumentRepository.findByExchangeId(exchangeId);
         return instruments.stream().map(this::convertToDTO).collect(Collectors.toList());
@@ -56,9 +62,6 @@ public class InstrumentServiceImpl implements InstrumentService, CommandLineRunn
         log.info("初始化品种数据完成");
     }
     
-    /**
-     * 初始化单个品种
-     */
     private void initInstrument(String code, String name, Long exchangeId, double price) {
         if (!instrumentRepository.existsByInstrumentCode(code)) {
             Instrument instrument = new Instrument();
@@ -86,7 +89,6 @@ public class InstrumentServiceImpl implements InstrumentService, CommandLineRunn
         BigDecimal price = BigDecimal.valueOf(newPrice);
         instrument.setCurrentPrice(price);
         
-        // 更新最高最低价
         if (instrument.getHighPrice() == null || price.compareTo(instrument.getHighPrice()) > 0) {
             instrument.setHighPrice(price);
         }
@@ -94,7 +96,6 @@ public class InstrumentServiceImpl implements InstrumentService, CommandLineRunn
             instrument.setLowPrice(price);
         }
         
-        // 计算涨跌
         BigDecimal changeAmount = price.subtract(instrument.getPrevClosePrice());
         BigDecimal changePercent = changeAmount.divide(instrument.getPrevClosePrice(), 4, BigDecimal.ROUND_HALF_UP)
             .multiply(BigDecimal.valueOf(100));
