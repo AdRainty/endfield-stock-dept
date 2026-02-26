@@ -1296,24 +1296,25 @@ body {
 .inst-name {
   font-size: 14px;
   font-weight: 700;
+  color: var(--text-primary) !important;
   font-family: var(--font-mono);
   letter-spacing: 1px;
 }
 
 .inst-name.type-能 {
-  color: var(--color-primary);
+  color: var(--text-primary) !important;
 }
 
 .inst-name.type-材 {
-  color: var(--color-accent);
+  color: var(--text-primary) !important;
 }
 
 .inst-name.type-数 {
-  color: var(--color-warning);
+  color: var(--text-primary) !important;
 }
 
 .inst-name.type-技 {
-  color: #7289da;
+  color: var(--text-primary) !important;
 }
 
 .inst-body {
