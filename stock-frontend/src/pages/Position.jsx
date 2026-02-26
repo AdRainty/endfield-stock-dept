@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Select, Table, Tag, Card } from "antd";
-import { WalletOutlined, CaretUpOutlined, CaretDownOutlined, DashboardOutlined, TrendUpOutlined } from "@ant-design/icons";
+import { WalletOutlined, CaretUpOutlined, CaretDownOutlined, DashboardOutlined } from "@ant-design/icons";
 import axios from "axios";
 
 const { Option } = Select;
