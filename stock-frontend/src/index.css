@@ -1136,46 +1136,6 @@ body {
   background: var(--color-bg-tertiary);
 }
 
-/* 市场统计数据显示 */
-.market-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  padding: 16px;
-  background: rgba(255, 107, 53, 0.03);
-  border-bottom: 1px solid rgba(255, 107, 53, 0.1);
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-.stat-label {
-  font-size: 11px;
-  color: var(--text-tertiary);
-  font-family: var(--font-mono);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-.stat-value {
-  font-size: 18px;
-  font-weight: 700;
-  font-family: var(--font-mono);
-  transition: color var(--transition-base);
-}
-
-.stat-value.rise {
-  color: var(--color-rise);
-}
-
-.stat-value.fall {
-  color: var(--color-fall);
-}
-
 .orderbook-content {
   flex: 1;
   display: flex;
