@@ -309,11 +309,11 @@ const Market = () => {
 
           {orderBook ? (
             <div className="orderbook-content">
-              {/* 卖盘档口 - 倒序显示 卖 5 到卖 1 */}
+              {/* 卖盘档口 - 从卖 5 到卖 1 */}
               <div className="orderbook-sells">
                 {Array.from({ length: 5 }).map((_, i) => {
-                  const ask = orderBook.asks?.[i] || {};
-                  const level = i + 1;
+                  const ask = orderBook.asks?.[4 - i] || {};
+                  const level = 5 - i;
                   return (
                     <div key={`ask-${level}`} className="orderbook-row-simple">
                       <span className="level-label">卖{level}</span>
