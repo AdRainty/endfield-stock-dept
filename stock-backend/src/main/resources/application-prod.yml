@@ -6,6 +6,12 @@ spring:
     username: ${DB_USERNAME:endfield}
     password: ${DB_PASSWORD:endfield}
 
+  # Liquibase 配置
+  liquibase:
+    enabled: true
+    # 生产环境使用上下文控制
+    contexts: production
+
 mybatis-plus:
   configuration:
     # 生产环境关闭 SQL 日志
@@ -15,6 +21,7 @@ logging:
   level:
     root: WARN
     com.adrainty.stock: INFO
+    liquibase: WARN
 
 # 生产环境关闭日志
 sa-token:

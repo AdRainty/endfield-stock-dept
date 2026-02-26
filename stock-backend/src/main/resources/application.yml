@@ -10,6 +10,11 @@ spring:
   profiles:
     active: dev
 
+  # Liquibase 配置
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+
   # Jackson 配置
   jackson:
     time-zone: Asia/Shanghai

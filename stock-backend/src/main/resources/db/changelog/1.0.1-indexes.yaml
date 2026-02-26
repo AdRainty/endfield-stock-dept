@@ -1,0 +1,81 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1.0.1-indexes
+      author: adrainty
+      comment: 创建索引
+      changes:
+        - createIndex:
+            indexName: idx_user_position_user_exchange
+            tableName: user_position
+            unique: false
+            columns:
+              - column: { name: user_id }
+              - column: { name: exchange_id }
+
+        - createIndex:
+            indexName: idx_order_book_user_id
+            tableName: order_book
+            unique: false
+            columns:
+              - column: { name: user_id }
+
+        - createIndex:
+            indexName: idx_order_book_order_time
+            tableName: order_book
+            unique: false
+            columns:
+              - column: { name: order_time, descending: true }
+
+        - createIndex:
+            indexName: idx_trade_record_buyer
+            tableName: trade_record
+            unique: false
+            columns:
+              - column: { name: buyer_user_id }
+
+        - createIndex:
+            indexName: idx_trade_record_seller
+            tableName: trade_record
+            unique: false
+            columns:
+              - column: { name: seller_user_id }
+
+        - createIndex:
+            indexName: idx_capital_flow_user_id
+            tableName: capital_flow
+            unique: false
+            columns:
+              - column: { name: user_id }
+
+        - createIndex:
+            indexName: idx_allocation_record_user_id
+            tableName: allocation_record
+            unique: false
+            columns:
+              - column: { name: user_id }
+
+        - createIndex:
+            indexName: idx_price_history_exchange_instrument
+            tableName: price_history
+            unique: false
+            columns:
+              - column: { name: exchange_id }
+              - column: { name: instrument_code }
+
+        - createIndex:
+            indexName: idx_price_history_time
+            tableName: price_history
+            unique: false
+            columns:
+              - column: { name: trade_time, descending: true }
+
+        # 添加唯一约束
+        - addUniqueConstraint:
+            tableName: user_position
+            constraintName: uk_user_exchange_instrument
+            columns: user_id, exchange_id, instrument_code
+
+        - addUniqueConstraint:
+            tableName: price_history
+            constraintName: uk_exchange_instrument_period_time
+            columns: exchange_id, instrument_code, period, trade_time

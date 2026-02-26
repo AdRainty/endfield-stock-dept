@@ -1,0 +1,606 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1.0.0-initial-schema
+      author: adrainty
+      comment: 初始化数据库表结构 - 终末地调度券交易模拟系统
+      changes:
+        # 创建交易所表
+        - createTable:
+            tableName: exchange
+            remarks: 交易所表
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_exchange
+              - column:
+                  name: exchange_code
+                  type: VARCHAR(20)
+                  constraints:
+                    unique: true
+              - column:
+                  name: name
+                  type: VARCHAR(50)
+              - column:
+                  name: description
+                  type: VARCHAR(255)
+              - column:
+                  name: status
+                  type: INTEGER
+                  defaultValueNumeric: 1
+              - column:
+                  name: trading_start
+                  type: VARCHAR(10)
+                  defaultValue: '00:00'
+              - column:
+                  name: trading_end
+                  type: VARCHAR(10)
+                  defaultValue: '23:59'
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        # 创建用户表
+        - createTable:
+            tableName: sys_user
+            remarks: 用户表
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_sys_user
+              - column:
+                  name: wechat_openid
+                  type: VARCHAR(100)
+                  constraints:
+                    unique: true
+              - column:
+                  name: nickname
+                  type: VARCHAR(50)
+              - column:
+                  name: avatar
+                  type: VARCHAR(255)
+              - column:
+                  name: role
+                  type: VARCHAR(20)
+                  defaultValue: 'USER'
+              - column:
+                  name: status
+                  type: INTEGER
+                  defaultValueNumeric: 1
+              - column:
+                  name: register_ip
+                  type: VARCHAR(50)
+              - column:
+                  name: last_login_at
+                  type: TIMESTAMP
+              - column:
+                  name: last_login_ip
+                  type: VARCHAR(50)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        # 创建角色表
+        - createTable:
+            tableName: sys_role
+            remarks: 角色表
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_sys_role
+              - column:
+                  name: role_code
+                  type: VARCHAR(20)
+                  constraints:
+                    unique: true
+              - column:
+                  name: role_name
+                  type: VARCHAR(50)
+              - column:
+                  name: description
+                  type: VARCHAR(255)
+              - column:
+                  name: status
+                  type: INTEGER
+                  defaultValueNumeric: 1
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        # 创建调度券品种表
+        - createTable:
+            tableName: instrument
+            remarks: 调度券品种表
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_instrument
+              - column:
+                  name: instrument_code
+                  type: VARCHAR(20)
+                  constraints:
+                    unique: true
+              - column:
+                  name: name
+                  type: VARCHAR(50)
+              - column:
+                  name: exchange_id
+                  type: BIGINT
+              - column:
+                  name: current_price
+                  type: DECIMAL(10,2)
+              - column:
+                  name: prev_close_price
+                  type: DECIMAL(10,2)
+              - column:
+                  name: open_price
+                  type: DECIMAL(10,2)
+              - column:
+                  name: high_price
+                  type: DECIMAL(10,2)
+              - column:
+                  name: low_price
+                  type: DECIMAL(10,2)
+              - column:
+                  name: change_percent
+                  type: DECIMAL(6,4)
+              - column:
+                  name: change_amount
+                  type: DECIMAL(10,2)
+              - column:
+                  name: volume
+                  type: BIGINT
+                  defaultValueNumeric: 0
+              - column:
+                  name: turnover
+                  type: DECIMAL(20,2)
+              - column:
+                  name: status
+                  type: INTEGER
+                  defaultValueNumeric: 1
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        # 创建用户持仓表
+        - createTable:
+            tableName: user_position
+            remarks: 用户持仓表
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_user_position
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: exchange_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: instrument_code
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: quantity
+                  type: DECIMAL(20,2)
+                  defaultValueNumeric: 0
+              - column:
+                  name: available_quantity
+                  type: DECIMAL(20,2)
+                  defaultValueNumeric: 0
+              - column:
+                  name: frozen_quantity
+                  type: DECIMAL(20,2)
+                  defaultValueNumeric: 0
+              - column:
+                  name: cost_price
+                  type: DECIMAL(10,2)
+              - column:
+                  name: cost_amount
+                  type: DECIMAL(20,2)
+                  defaultValueNumeric: 0
+              - column:
+                  name: latest_price
+                  type: DECIMAL(10,2)
+              - column:
+                  name: profit_loss
+                  type: DECIMAL(20,2)
+                  defaultValueNumeric: 0
+              - column:
+                  name: profit_loss_rate
+                  type: DECIMAL(6,4)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        # 创建委托订单表
+        - createTable:
+            tableName: order_book
+            remarks: 委托订单表
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_order_book
+              - column:
+                  name: order_no
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: exchange_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: instrument_code
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: order_type
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: price
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: quantity
+                  type: DECIMAL(20,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: filled_quantity
+                  type: DECIMAL(20,2)
+                  defaultValueNumeric: 0
+              - column:
+                  name: unfilled_quantity
+                  type: DECIMAL(20,2)
+              - column:
+                  name: filled_amount
+                  type: DECIMAL(20,2)
+                  defaultValueNumeric: 0
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: order_time
+                  type: TIMESTAMP
+              - column:
+                  name: filled_time
+                  type: TIMESTAMP
+              - column:
+                  name: cancelled_time
+                  type: TIMESTAMP
+              - column:
+                  name: cancel_reason
+                  type: VARCHAR(255)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        # 创建交易记录表
+        - createTable:
+            tableName: trade_record
+            remarks: 交易记录表
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_trade_record
+              - column:
+                  name: trade_no
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: order_no
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: buyer_user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: seller_user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: exchange_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: instrument_code
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: order_type
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: price
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: quantity
+                  type: DECIMAL(20,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: DECIMAL(20,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: fee
+                  type: DECIMAL(10,2)
+                  defaultValueNumeric: 0
+              - column:
+                  name: trade_time
+                  type: TIMESTAMP
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        # 创建资金流水表
+        - createTable:
+            tableName: capital_flow
+            remarks: 资金流水表
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_capital_flow
+              - column:
+                  name: flow_no
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: exchange_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: flow_type
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: DECIMAL(20,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: balance_after
+                  type: DECIMAL(20,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ref_no
+                  type: VARCHAR(32)
+              - column:
+                  name: remark
+                  type: VARCHAR(255)
+              - column:
+                  name: operate_time
+                  type: TIMESTAMP
+              - column:
+                  name: operator_id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        # 创建管理员分配记录表
+        - createTable:
+            tableName: allocation_record
+            remarks: 管理员分配记录表
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_allocation_record
+              - column:
+                  name: allocation_no
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: exchange_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: DECIMAL(20,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: balance_after
+                  type: DECIMAL(20,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reason
+                  type: VARCHAR(255)
+              - column:
+                  name: admin_user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: operate_time
+                  type: TIMESTAMP
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        # 创建价格历史表（K 线数据）
+        - createTable:
+            tableName: price_history
+            remarks: 价格历史表
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_price_history
+              - column:
+                  name: exchange_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: instrument_code
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: period
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: trade_time
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: open_price
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: high_price
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: low_price
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: close_price
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: volume
+                  type: DECIMAL(20,2)
+              - column:
+                  name: turnover
+                  type: DECIMAL(20,2)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP

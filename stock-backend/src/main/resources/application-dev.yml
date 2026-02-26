@@ -6,6 +6,10 @@ spring:
     username: ${DB_USERNAME:endfield}
     password: ${DB_PASSWORD:endfield}
 
+  # Liquibase 日志
+  liquibase:
+    enabled: true
+
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
@@ -14,3 +18,4 @@ logging:
   level:
     root: INFO
     com.adrainty.stock: DEBUG
+    liquibase: INFO
