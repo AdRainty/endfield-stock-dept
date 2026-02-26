@@ -1110,7 +1110,8 @@ body {
   border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  flex: 1;
+  min-height: 0;
 }
 
 .panel-header {
@@ -1120,6 +1121,15 @@ body {
   justify-content: space-between;
   padding: 0 20px;
   background: var(--color-bg-tertiary);
+  flex-shrink: 0;
+}
+
+.orderbook-content {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex: 1;
+}
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -1377,11 +1387,11 @@ body {
 
 /* 档口表格 */
 .orderbook-table {
-  flex: 1;
   padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-height: 280px;
+  flex-shrink: 0;
 }
 
 .orderbook-header {
