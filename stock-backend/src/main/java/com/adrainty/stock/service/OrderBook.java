@@ -130,14 +130,28 @@ public class OrderBook {
      * 查找可以撮合的买单（价格 >= 卖价）
      */
     public synchronized NavigableMap<BigDecimal, OrderLevel> findMatchableBids(BigDecimal askPrice) {
-        return bids.subMap(askPrice, true, bids.lastKey(), true);
+        if (bids.isEmpty()) {
+            return new ConcurrentSkipListMap<>(Collections.reverseOrder());
+        }
+        BigDecimal bestBid = bids.firstKey();
+        if (bestBid.compareTo(askPrice) < 0) {
+            return new ConcurrentSkipListMap<>(Collections.reverseOrder());
+        }
+        return bids.subMap(askPrice, true, bestBid, true);
     }
-    
+
     /**
      * 查找可以撮合的卖单（价格 <= 买价）
      */
     public synchronized NavigableMap<BigDecimal, OrderLevel> findMatchableAsks(BigDecimal bidPrice) {
-        return asks.subMap(asks.firstKey(), true, bidPrice, true);
+        if (asks.isEmpty()) {
+            return new ConcurrentSkipListMap<>();
+        }
+        BigDecimal bestAsk = asks.firstKey();
+        if (bestAsk.compareTo(bidPrice) > 0) {
+            return new ConcurrentSkipListMap<>();
+        }
+        return asks.subMap(bestAsk, true, bidPrice, true);
     }
     
     /**
