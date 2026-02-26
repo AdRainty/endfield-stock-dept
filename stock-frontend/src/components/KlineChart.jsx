@@ -45,9 +45,21 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
     const fullData = [];
     const dataMap = new Map();
 
-    // 将现有数据存入 Map
+    // 将现有数据存入 Map，处理后端的 time 格式
     data.forEach(item => {
-      dataMap.set(item.time, item);
+      let timeKey = item.time;
+      // 如果 time 是完整时间戳格式，提取 HH:mm
+      if (timeKey && timeKey.includes(' ')) {
+        const parts = timeKey.split(' ');
+        if (parts[1]) {
+          timeKey = parts[1].substring(0, 5); // 取 HH:mm
+        }
+      } else if (timeKey && timeKey.includes(':')) {
+        timeKey = timeKey.substring(0, 5);
+      }
+      if (timeKey) {
+        dataMap.set(timeKey, { ...item, time: timeKey });
+      }
     });
 
     // 生成 9:30 到 15:00 的所有分钟
@@ -90,10 +102,13 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
         `/api/market/kline?exchangeId=${exchangeId}&instrumentCode=${instrumentCode}&period=${period}&limit=${limit}`
       );
       const result = await res.json();
+      console.log("K 线响应:", result, "period:", period);
       if (result.code === 0) {
         const rawData = result.data || [];
+        console.log("原始数据:", rawData);
         // 分时图使用完整的交易时间段
         const processedData = period === "1m" ? generateFullTradingTime(rawData) : rawData;
+        console.log("处理后数据:", processedData.length, "条");
         setKlineData(processedData);
       }
     } catch (error) {
@@ -145,30 +160,26 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
     }
   };
 
-  // 分时图 X 轴刻度间隔（每 30 分钟显示一个刻度）
-  const getXAxisTicks = (data) => {
-    if (period !== "1m" || data.length === 0) return [];
-    const tickIndices = [];
-    // 9:30, 10:00, 10:30, 11:00, 11:30, 13:00, 13:30, 14:00, 14:30, 15:00
-    const showMinutes = [30, 0, 30, 0, 30, 0, 30, 0, 30, 0];
-    const showHours = [9, 10, 10, 11, 11, 13, 13, 14, 14, 15];
+  // 分时图 X 轴刻度 - 显示关键时间点
+  const getTradingTimeTicks = (data) => {
+    if (period !== "1m") return undefined;
 
-    let dataIndex = 0;
-    for (let i = 0; i < showHours.length; i++) {
-      const hour = showHours[i];
-      const minute = showMinutes[i];
-      // 计算该时间点在数据中的索引
-      const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-      const idx = data.findIndex(item => item.time === timeStr);
-      if (idx !== -1) {
-        tickIndices.push(idx);
-      }
+    // 关键时间点：9:30, 10:00, 10:30, 11:00, 11:30, 13:00, 13:30, 14:00, 14:30, 15:00
+    const keyTimes = [
+      "09:30", "10:00", "10:30", "11:00", "11:30",
+      "13:00", "13:30", "14:00", "14:30", "15:00"
+    ];
+
+    // 如果有数据，从数据中筛选
+    if (data && data.length > 0) {
+      return data.filter(item => keyTimes.includes(item.time));
     }
 
-    return tickIndices;
+    // 没有数据时返回空数组，让 X 轴仍然能显示
+    return [];
   };
 
-  const xAxisTicks = useMemo(() => getXAxisTicks(klineData), [klineData, period]);
+  const xAxisTicks = useMemo(() => getTradingTimeTicks(klineData), [klineData, period]);
 
   // 计算最高价和最低价用于 Y 轴范围
   const { yAxisDomain, priceChange } = useMemo(() => {
@@ -176,12 +187,19 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
       return { yAxisDomain: [0, 100], priceChange: { amount: 0, percent: 0 } };
     }
 
-    const high = Math.max(...klineData.map(d => parseFloat(d.high || 0)));
-    const low = Math.min(...klineData.map(d => parseFloat(d.low || 0)));
+    // 过滤出有有效价格的数据
+    const validData = klineData.filter(d => d.close !== null && d.close !== undefined);
+
+    if (validData.length === 0) {
+      return { yAxisDomain: [0, 100], priceChange: { amount: 0, percent: 0 } };
+    }
+
+    const high = Math.max(...validData.map(d => parseFloat(d.high || d.close || 0)));
+    const low = Math.min(...validData.map(d => parseFloat(d.low || d.close || 0)));
     const padding = (high - low) * 0.1 || 1;
 
-    const lastClose = klineData[klineData.length - 1]?.close || 0;
-    const firstOpen = klineData[0]?.open || 0;
+    const lastClose = validData[validData.length - 1]?.close || 0;
+    const firstOpen = validData[0]?.open || 0;
     const amount = lastClose - firstOpen;
     const percent = firstOpen > 0 ? (amount / firstOpen) * 100 : 0;
 
@@ -328,7 +346,7 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
                           <div className="kline-tooltip">
                             <div className="tooltip-title">{formatTime(data.time, period)}</div>
                             <div className="tooltip-row"><span>时间:</span> <span className="tooltip-value">{data.time}</span></div>
-                            <div className="tooltip-row"><span>价格:</span> <span className="tooltip-value">{data.close?.toFixed(2)}</span></div>
+                            <div className="tooltip-row"><span>价格:</span> <span className="tooltip-value">{data.close !== null ? data.close.toFixed(2) : '-'}</span></div>
                             <div className="tooltip-row"><span>成交量:</span> <span className="tooltip-value">{data.volume?.toLocaleString()}</span></div>
                           </div>
                         );
@@ -343,6 +361,7 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
                     strokeWidth={1.5}
                     dot={false}
                     isAnimationActive={false}
+                    connectNulls={true}
                   />
                 </LineChart>
               )}
