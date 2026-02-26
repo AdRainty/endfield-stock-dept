@@ -11,6 +11,7 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
   const [period, setPeriod] = useState("1m"); // 1m-分时 1d-日 K 1M-月 K 1Y-年 K
   const [klineData, setKlineData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isTradingTime, setIsTradingTime] = useState(true);
 
   // 周期选项
   const periodOptions = [
@@ -22,6 +23,20 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
 
   // 判断是否为蜡烛图模式
   const isCandlestick = period !== "1m";
+
+  // 判断当前是否在交易时间内（9:30-15:00）
+  const checkTradingTime = () => {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const currentTime = hours * 60 + minutes;
+    const marketOpen = 9 * 60 + 30;  // 9:30
+    const marketClose = 15 * 60;     // 15:00
+
+    const inTradingTime = currentTime >= marketOpen && currentTime < marketClose;
+    setIsTradingTime(inTradingTime);
+    return inTradingTime;
+  };
 
   // 获取 K 线数据
   const fetchKline = async () => {
@@ -47,13 +62,20 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
     fetchKline();
   }, [exchangeId, instrumentCode, period]);
 
-  // 实时轮询更新（仅分时图每 3 秒更新）
+  // 实时轮询更新（仅分时图每 3 秒更新）- 只在交易时间内更新
   useEffect(() => {
     if (!exchangeId || !instrumentCode) return;
     if (period !== "1m") return; // 日 K 及以上周期不需要实时更新
 
+    // 初始检查交易时间
+    checkTradingTime();
+
     const pollInterval = 3000;
-    const timer = setInterval(fetchKline, pollInterval);
+    const timer = setInterval(() => {
+      if (checkTradingTime()) {
+        fetchKline();
+      }
+    }, pollInterval);
 
     return () => clearInterval(timer);
   }, [exchangeId, instrumentCode, period]);
