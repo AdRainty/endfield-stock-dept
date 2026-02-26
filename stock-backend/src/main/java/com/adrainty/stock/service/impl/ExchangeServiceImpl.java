@@ -1,7 +1,6 @@
 package com.adrainty.stock.service.impl;
 
 import com.adrainty.stock.entity.Exchange;
-import com.adrainty.stock.enums.ExchangeCode;
 import com.adrainty.stock.mapper.ExchangeMapper;
 import com.adrainty.stock.service.ExchangeService;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +30,7 @@ public class ExchangeServiceImpl implements ExchangeService, CommandLineRunner {
     }
 
     @Override
-    public Exchange getByCode(ExchangeCode code) {
+    public Exchange getByCode(String code) {
         return exchangeMapper.findByExchangeCode(code);
     }
 
@@ -39,10 +38,10 @@ public class ExchangeServiceImpl implements ExchangeService, CommandLineRunner {
     @Transactional
     public void initExchanges() {
         // 初始化四号谷底交易所
-        Exchange existingValley = exchangeMapper.findByExchangeCode(ExchangeCode.VALLEY);
+        Exchange existingValley = exchangeMapper.findByExchangeCode("VALLEY");
         if (existingValley == null) {
             Exchange valley = new Exchange();
-            valley.setExchangeCode(ExchangeCode.VALLEY);
+            valley.setExchangeCode("VALLEY");
             valley.setName("四号谷底");
             valley.setDescription("位于四号谷底的交易所，主要交易能源类调度券");
             valley.setStatus(1);
@@ -53,10 +52,10 @@ public class ExchangeServiceImpl implements ExchangeService, CommandLineRunner {
         }
 
         // 初始化武陵交易所
-        Exchange existingWuling = exchangeMapper.findByExchangeCode(ExchangeCode.WULING);
+        Exchange existingWuling = exchangeMapper.findByExchangeCode("WULING");
         if (existingWuling == null) {
             Exchange wuling = new Exchange();
-            wuling.setExchangeCode(ExchangeCode.WULING);
+            wuling.setExchangeCode("WULING");
             wuling.setName("武陵");
             wuling.setDescription("位于武陵地区的交易所，主要交易技术类调度券");
             wuling.setStatus(1);

@@ -1,6 +1,5 @@
 package com.adrainty.stock.entity;
 
-import com.adrainty.stock.enums.ExchangeCode;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
@@ -18,10 +17,10 @@ import lombok.Setter;
 public class Exchange extends BaseEntity {
 
     /**
-     * 交易所代码
+     * 交易所代码（如：SHFE、SZSE、DCE 等）
      */
     @TableField("exchange_code")
-    private ExchangeCode exchangeCode;
+    private String exchangeCode;
 
     /**
      * 交易所名称

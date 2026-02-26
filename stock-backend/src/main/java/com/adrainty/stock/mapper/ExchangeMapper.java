@@ -25,7 +25,7 @@ public interface ExchangeMapper extends BaseMapper<Exchange> {
      * @return 交易所对象
      */
     @Select("SELECT * FROM exchange WHERE exchange_code = #{exchangeCode}")
-    Exchange findByExchangeCode(@Param("exchangeCode") ExchangeCode exchangeCode);
+    Exchange findByExchangeCode(@Param("exchangeCode") String exchangeCode);
 
     /**
      * 检查交易所代码是否存在
@@ -34,7 +34,7 @@ public interface ExchangeMapper extends BaseMapper<Exchange> {
      * @return 是否存在
      */
     @Select("SELECT COUNT(*) FROM exchange WHERE exchange_code = #{exchangeCode}")
-    boolean existsByExchangeCode(@Param("exchangeCode") ExchangeCode exchangeCode);
+    boolean existsByExchangeCode(@Param("exchangeCode") String exchangeCode);
 
     /**
      * 查找所有正常状态的交易所

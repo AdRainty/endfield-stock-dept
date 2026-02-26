@@ -41,7 +41,7 @@ public class ExchangeController {
         List<Map<String, Object>> result = exchanges.stream().map(e -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", e.getId());
-            map.put("code", e.getExchangeCode().getCode());
+            map.put("code", e.getExchangeCode());
             map.put("name", e.getName());
             map.put("description", e.getDescription());
             map.put("status", e.getStatus());

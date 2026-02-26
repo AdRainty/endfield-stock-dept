@@ -22,11 +22,11 @@ public interface ExchangeService {
     
     /**
      * 根据代码获取交易所
-     * 
+     *
      * @param code 交易所代码
      * @return 交易所对象
      */
-    Exchange getByCode(ExchangeCode code);
+    Exchange getByCode(String code);
     
     /**
      * 初始化交易所数据
