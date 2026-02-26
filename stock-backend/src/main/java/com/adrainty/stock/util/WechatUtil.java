@@ -51,24 +51,24 @@ public class WechatUtil {
             int sceneId = Math.abs(sceneStr.hashCode());
             String redisKey = REDIS_QR_PREFIX + sceneStr;
 
-            // 使用 WxJava 生成临时二维码
-            WxMpQrCodeTicket ticket = wxMpService.getQrcodeService().qrCodeCreateTmpTicket(sceneId, (int) QR_EXPIRE_MINUTES * 60);
+            // 获取二维码服务
+            var qrcodeService = wxMpService.getQrcodeService();
 
-            // 生成微信授权 URL（用于前端 QRCode 组件）
-            String authorizeUrl = wxMpService.oauth2buildAuthorizationUrl(
-                properties.getRedirectUri(),
-                "snsapi_userinfo",
-                sceneStr
-            );
+            // 使用 WxJava 生成临时二维码 ticket
+            WxMpQrCodeTicket qrCodeTicket = qrcodeService.qrCodeCreateTmpTicket(sceneId, (int) QR_EXPIRE_MINUTES * 60);
+            String ticket = qrCodeTicket.getTicket();
 
-            log.info("生成微信二维码，sceneId={}, ticket={}, url={}", sceneId, ticket.getTicket(), authorizeUrl);
+            // 获取二维码图片 URL（这是微信官方的二维码图片）
+            String pictureUrl = qrcodeService.qrCodePictureUrl(ticket);
+
+            log.info("生成微信二维码，sceneId={}, ticket={}, pictureUrl={}", sceneId, ticket, pictureUrl);
 
             // 存储场景信息到 Redis
             WxQrCodeScene scene = new WxQrCodeScene();
             scene.setScene(sceneStr);
             scene.setSceneId(sceneId);
-            scene.setTicket(ticket.getTicket());
-            scene.setQrCodeUrl(authorizeUrl);
+            scene.setTicket(ticket);
+            scene.setQrCodeUrl(pictureUrl);  // 直接返回微信官方的二维码图片 URL
             scene.setStatus("WAIT");
             scene.setExpireTime(System.currentTimeMillis() + QR_EXPIRE_MINUTES * 60 * 1000);
 
