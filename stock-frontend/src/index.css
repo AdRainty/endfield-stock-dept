@@ -818,10 +818,18 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
+  cursor: pointer;
+  border: none !important;
+  background: transparent !important;
 }
 
 .user-display .anticon {
   color: var(--color-accent);
+}
+
+.user-dropdown .ant-dropdown-trigger {
+  border: none !important;
+  background: transparent !important;
 }
 
 .role-tag {
