@@ -1914,11 +1914,66 @@ body {
   height: calc(100vh - 48px - 40px);
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
   overflow: hidden;
 }
 
-/* 资金卡片 */
+/* 持仓统计 - 表格上方横条 */
+.position-summary {
+  display: flex;
+  align-items: center;
+  background: var(--color-bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 12px 24px;
+  gap: 8px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120px;
+  padding: 8px 16px;
+}
+
+.summary-label {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+
+.summary-value {
+  font-size: 20px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.summary-value.rise {
+  color: var(--color-rise);
+}
+
+.summary-value.fall {
+  color: var(--color-fall);
+}
+
+.summary-unit {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.summary-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--border-color);
+  margin: 0 4px;
+}
+
+/* 资金卡片（备用） */
 .account-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

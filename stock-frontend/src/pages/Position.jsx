@@ -171,74 +171,48 @@ const Position = () => {
         </div>
       </div>
 
-      {/* 资金卡片 */}
+      {/* 持仓统计 - 表格上方 */}
       {account && (
-        <div className="account-cards">
-          <div className="account-card">
-            <div className="card-icon available">
-              <WalletOutlined />
-            </div>
-            <div className="card-content">
-              <span className="card-label">可用资金</span>
-              <span className="card-value">{account.available?.toFixed(2)}</span>
-              <span className="card-unit">CNY</span>
-            </div>
+        <div className="position-summary">
+          <div className="summary-item">
+            <span className="summary-label">总资产</span>
+            <span className={`summary-value ${account.totalProfitLoss >= 0 ? 'rise' : 'fall'}`}>
+              {account.totalAsset?.toFixed(2)}
+            </span>
+            <span className="summary-unit">CNY</span>
           </div>
-          <div className="account-card">
-            <div className="card-icon frozen">
-              <DashboardOutlined />
-            </div>
-            <div className="card-content">
-              <span className="card-label">冻结资金</span>
-              <span className="card-value">{account.frozen?.toFixed(2)}</span>
-              <span className="card-unit">CNY</span>
-            </div>
+          <div className="summary-divider"></div>
+          <div className="summary-item">
+            <span className="summary-label">可用资金</span>
+            <span className="summary-value">{account.available?.toFixed(2)}</span>
+            <span className="summary-unit">CNY</span>
           </div>
-          <div className="account-card">
-            <div className="card-icon position">
-              <TrendUpOutlined />
-            </div>
-            <div className="card-content">
-              <span className="card-label">持仓市值</span>
-              <span className="card-value">{account.positionValue?.toFixed(2)}</span>
-              <span className="card-unit">CNY</span>
-            </div>
-            <div className="card-profit">
-              <span className="profit-label">持仓盈亏</span>
-              <span className={`profit-value ${account.positionProfitLoss >= 0 ? 'rise' : 'fall'}`}>
-                {account.positionProfitLoss >= 0 ? '+' : ''}{account.positionProfitLoss?.toFixed(2)}
-              </span>
-            </div>
+          <div className="summary-divider"></div>
+          <div className="summary-item">
+            <span className="summary-label">持仓市值</span>
+            <span className="summary-value">{account.positionValue?.toFixed(2)}</span>
+            <span className="summary-unit">CNY</span>
           </div>
-          <div className="account-card">
-            <div className="card-icon today">
-              <TrendUpOutlined />
-            </div>
-            <div className="card-content">
-              <span className="card-label">当日盈亏</span>
-              <span className={`card-value ${account.todayProfitLoss >= 0 ? 'rise' : 'fall'}`}>
-                {account.todayProfitLoss >= 0 ? '+' : ''}{account.todayProfitLoss?.toFixed(2)}
-              </span>
-              <span className="card-unit">CNY</span>
-            </div>
+          <div className="summary-divider"></div>
+          <div className="summary-item">
+            <span className="summary-label">当日盈亏</span>
+            <span className={`summary-value ${account.todayProfitLoss >= 0 ? 'rise' : 'fall'}`}>
+              {account.todayProfitLoss >= 0 ? '+' : ''}{account.todayProfitLoss?.toFixed(2)}
+            </span>
           </div>
-          <div className="account-card total">
-            <div className="card-icon total">
-              <WalletOutlined />
-            </div>
-            <div className="card-content">
-              <span className="card-label">总资产</span>
-              <span className={`card-value ${account.totalProfitLoss >= 0 ? 'rise' : 'fall'}`}>
-                {account.totalAsset?.toFixed(2)}
-              </span>
-              <span className="card-unit">CNY</span>
-            </div>
-            <div className="card-profit">
-              <span className="profit-label">总盈亏</span>
-              <span className={`profit-value ${account.totalProfitLoss >= 0 ? 'rise' : 'fall'}`}>
-                {account.totalProfitLoss >= 0 ? '+' : ''}{account.totalProfitLoss?.toFixed(2)}
-              </span>
-            </div>
+          <div className="summary-divider"></div>
+          <div className="summary-item">
+            <span className="summary-label">持仓盈亏</span>
+            <span className={`summary-value ${account.positionProfitLoss >= 0 ? 'rise' : 'fall'}`}>
+              {account.positionProfitLoss >= 0 ? '+' : ''}{account.positionProfitLoss?.toFixed(2)}
+            </span>
+          </div>
+          <div className="summary-divider"></div>
+          <div className="summary-item">
+            <span className="summary-label">总盈亏</span>
+            <span className={`summary-value ${account.totalProfitLoss >= 0 ? 'rise' : 'fall'}`}>
+              {account.totalProfitLoss >= 0 ? '+' : ''}{account.totalProfitLoss?.toFixed(2)}
+            </span>
           </div>
         </div>
       )}
