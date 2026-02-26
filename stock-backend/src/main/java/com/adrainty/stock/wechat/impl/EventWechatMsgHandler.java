@@ -97,13 +97,18 @@ public class EventWechatMsgHandler implements IWechatMsgHandler {
             // 新用户注册
             newUser = true;
 
+            // 检查是否为首位注册用户
+            boolean isFirstUser = !userMapper.existsByWechatOpenid(openId) &&
+                                   userMapper.selectCount(null) == 0;
+
             user = new User();
             user.setWechatOpenid(openId);
             user.setNickname(WX_NICKNAME_PREFIX + RandomStringUtils.randomAlphanumeric(8));
-            user.setRole(UserRole.USER);
+            user.setRole(isFirstUser ? UserRole.ADMIN : UserRole.USER);
             user.setStatus(1);
             userMapper.insert(user);
-            log.info("新用户注册：openid={}, nickname={}", openId, user.getNickname());
+            log.info("新用户注册：openid={}, nickname={}, role={}, isFirstUser={}",
+                    openId, user.getNickname(), user.getRole(), isFirstUser);
 
             // 初始化资金和持仓
             initUserResources(user.getId());
