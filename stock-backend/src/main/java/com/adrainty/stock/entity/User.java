@@ -66,4 +66,16 @@ public class User extends BaseEntity {
      */
     @TableField("last_login_ip")
     private String lastLoginIp;
+
+    /**
+     * 可用资金
+     */
+    @TableField("available_capital")
+    private java.math.BigDecimal availableCapital = java.math.BigDecimal.ZERO;
+
+    /**
+     * 锁定资金（买入委托未成交时冻结）
+     */
+    @TableField("locked_capital")
+    private java.math.BigDecimal lockedCapital = java.math.BigDecimal.ZERO;
 }

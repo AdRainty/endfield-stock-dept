@@ -30,9 +30,9 @@ public class AdminController {
     private final AdminService adminService;
 
     /**
-     * 分配原能
+     * 分配资金
      */
-    @Operation(summary = "分配原能", description = "向用户分配调度券原能")
+    @Operation(summary = "分配资金", description = "向用户分配可用资金")
     @PostMapping("/allocate")
     @SaCheckRole("ADMIN")
     public ResponseEntity<GlobalExceptionHandler.ApiResult<String>> allocate(
@@ -77,18 +77,6 @@ public class AdminController {
             @RequestParam Integer status) {
         adminService.updateUserStatus(userId, status);
         return ResponseEntity.ok(GlobalExceptionHandler.ApiResult.success("更新成功"));
-    }
-
-    /**
-     * 获取分配记录
-     */
-    @Operation(summary = "获取分配记录", description = "获取原能分配记录列表")
-    @GetMapping("/allocations")
-    @SaCheckRole("ADMIN")
-    public ResponseEntity<GlobalExceptionHandler.ApiResult<List<Map<String, Object>>>> getAllocationRecords(
-            @RequestParam(required = false) Long userId) {
-        List<Map<String, Object>> records = adminService.getAllocationRecords(userId);
-        return ResponseEntity.ok(GlobalExceptionHandler.ApiResult.success(records));
     }
 
     /**

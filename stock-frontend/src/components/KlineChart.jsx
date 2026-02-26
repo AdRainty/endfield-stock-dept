@@ -48,21 +48,32 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
     // 将现有数据存入 Map，处理后端的 time 格式
     data.forEach(item => {
       let timeKey = item.time;
-      // 如果 time 是完整时间戳格式，提取 HH:mm
-      if (timeKey && timeKey.includes(' ')) {
-        const parts = timeKey.split(' ');
-        if (parts[1]) {
-          timeKey = parts[1].substring(0, 5); // 取 HH:mm
-        }
-      } else if (timeKey && timeKey.includes(':')) {
-        timeKey = timeKey.substring(0, 5);
-      }
+      // 后端返回的是 LocalDateTime 格式：2026-02-27T10:30:00.123456
+      // 需要提取 HH:mm 部分
       if (timeKey) {
-        dataMap.set(timeKey, { ...item, time: timeKey });
+        const timeStr = String(timeKey);
+        let extractedTime = '';
+
+        if (timeStr.includes('T')) {
+          // ISO 格式：提取 T 后面的时间部分 HH:mm:ss.SSSSSS
+          const timePart = timeStr.split('T')[1];
+          if (timePart) {
+            // 提取 HH:mm
+            extractedTime = timePart.substring(0, 5);
+          }
+        } else if (timeStr.includes(':')) {
+          // 直接是 HH:mm:ss 或 HH:mm 格式
+          extractedTime = timeStr.substring(0, 5);
+        }
+
+        if (extractedTime) {
+          dataMap.set(extractedTime, { ...item, time: extractedTime });
+        }
       }
     });
 
-    // 生成 9:30 到 15:00 的所有分钟
+    // 生成 9:30 到 15:00 的所有分钟，使用上一个有效价格填充空白
+    let lastPrice = null;
     for (let hour = 9; hour <= 15; hour++) {
       for (let minute = 0; minute < 60; minute++) {
         // 跳过 9:00-9:29
@@ -75,14 +86,18 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
 
         if (existingData) {
           fullData.push(existingData);
+          // 更新最后有效价格
+          if (existingData.close !== null && existingData.close !== undefined) {
+            lastPrice = existingData.close;
+          }
         } else {
-          // 没有数据的分钟，创建一个空数据点
+          // 没有数据的分钟，使用上一个有效价格填充
           fullData.push({
             time: timeStr,
-            open: null,
-            close: null,
-            high: null,
-            low: null,
+            open: lastPrice,
+            close: lastPrice,
+            high: lastPrice,
+            low: lastPrice,
             volume: 0,
           });
         }
@@ -105,10 +120,18 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
       console.log("K 线响应:", result, "period:", period);
       if (result.code === 0) {
         const rawData = result.data || [];
-        console.log("原始数据:", rawData);
+        console.log("原始数据条数:", rawData.length);
+        if (rawData.length > 0) {
+          console.log("第一条数据:", rawData[0]);
+          console.log("第一条数据 time 类型:", typeof rawData[0].time);
+          console.log("第一条数据 close 类型:", typeof rawData[0].close);
+        }
         // 分时图使用完整的交易时间段
         const processedData = period === "1m" ? generateFullTradingTime(rawData) : rawData;
         console.log("处理后数据:", processedData.length, "条");
+        if (processedData.length > 0) {
+          console.log("处理后第一条数据:", processedData[0]);
+        }
         setKlineData(processedData);
       }
     } catch (error) {
@@ -144,10 +167,12 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
   const formatTime = (timeStr, periodType) => {
     if (!timeStr) return "";
     if (periodType === "1m") {
-      // 分时图直接显示时间字符串
+      // 分时图直接显示时间字符串（已经是 HH:mm 格式）
       return timeStr;
     }
-    const date = new Date(timeStr);
+    // 处理 LocalDateTime 格式：2026-02-27T10:30:00 或 2026-02-27 10:30:00
+    const dateStr = String(timeStr);
+    const date = new Date(dateStr.replace('T', ' '));
     switch (periodType) {
       case "1d":
         return date.toLocaleDateString("zh-CN", { month: "2-digit", day: "2-digit" });
@@ -160,26 +185,14 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
     }
   };
 
-  // 分时图 X 轴刻度 - 显示关键时间点
-  const getTradingTimeTicks = (data) => {
+  // 分时图 X 轴刻度间隔（每 30 分钟显示一个标签）
+  const getXAxisInterval = () => {
     if (period !== "1m") return undefined;
-
-    // 关键时间点：9:30, 10:00, 10:30, 11:00, 11:30, 13:00, 13:30, 14:00, 14:30, 15:00
-    const keyTimes = [
-      "09:30", "10:00", "10:30", "11:00", "11:30",
-      "13:00", "13:30", "14:00", "14:30", "15:00"
-    ];
-
-    // 如果有数据，从数据中筛选
-    if (data && data.length > 0) {
-      return data.filter(item => keyTimes.includes(item.time));
-    }
-
-    // 没有数据时返回空数组，让 X 轴仍然能显示
-    return [];
+    // 240 分钟数据，每 30 个显示一个标签（9:30, 10:00, 10:30, 11:00, 11:30, 13:00, 13:30, 14:00, 14:30, 15:00）
+    return 29; // 每隔 29 个点显示一个（即每 30 分钟）
   };
 
-  const xAxisTicks = useMemo(() => getTradingTimeTicks(klineData), [klineData, period]);
+  const xAxisInterval = useMemo(() => getXAxisInterval(), [period]);
 
   // 计算最高价和最低价用于 Y 轴范围
   const { yAxisDomain, priceChange } = useMemo(() => {
@@ -187,19 +200,33 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
       return { yAxisDomain: [0, 100], priceChange: { amount: 0, percent: 0 } };
     }
 
-    // 过滤出有有效价格的数据
-    const validData = klineData.filter(d => d.close !== null && d.close !== undefined);
+    // 过滤出有有效价格的数据（检查 close 不为 null/undefined，且数值有效）
+    const validData = klineData.filter(d => {
+      const close = d.close;
+      // 处理 BigDecimal 序列化后的字符串或数字
+      if (close === null || close === undefined || close === '') return false;
+      const closeNum = typeof close === 'string' ? parseFloat(close) : close;
+      return !isNaN(closeNum);
+    });
 
     if (validData.length === 0) {
       return { yAxisDomain: [0, 100], priceChange: { amount: 0, percent: 0 } };
     }
 
-    const high = Math.max(...validData.map(d => parseFloat(d.high || d.close || 0)));
-    const low = Math.min(...validData.map(d => parseFloat(d.low || d.close || 0)));
-    const padding = (high - low) * 0.1 || 1;
+    // 辅助函数：安全地将值转换为数字
+    const toNumber = (val) => {
+      if (val === null || val === undefined || val === '') return 0;
+      return typeof val === 'string' ? parseFloat(val) : val;
+    };
 
-    const lastClose = validData[validData.length - 1]?.close || 0;
-    const firstOpen = validData[0]?.open || 0;
+    const high = Math.max(...validData.map(d => toNumber(d.high) || toNumber(d.close)));
+    const low = Math.min(...validData.map(d => toNumber(d.low) || toNumber(d.close)));
+    // 当 high === low 时（如没有交易时），设置一个固定的百分比范围
+    const range = high - low;
+    const padding = range > 0 ? range * 0.1 : high * 0.05 || 1;
+
+    const lastClose = toNumber(validData[validData.length - 1]?.close);
+    const firstOpen = toNumber(validData[0]?.open);
     const amount = lastClose - firstOpen;
     const percent = firstOpen > 0 ? (amount / firstOpen) * 100 : 0;
 
@@ -294,7 +321,7 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
                     tickFormatter={(t) => formatTime(t, period)}
                     stroke="#666"
                     tick={{ fontSize: 12 }}
-                    ticks={period === "1m" ? xAxisTicks : undefined}
+                    interval={xAxisInterval}
                   />
                   <YAxis
                     domain={yAxisDomain}
@@ -330,7 +357,7 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
                     tickFormatter={(t) => formatTime(t, period)}
                     stroke="#666"
                     tick={{ fontSize: 12 }}
-                    ticks={period === "1m" ? xAxisTicks : undefined}
+                    interval={xAxisInterval}
                   />
                   <YAxis
                     domain={yAxisDomain}

@@ -14,6 +14,7 @@ import {
   BankOutlined,
   FileTextOutlined,
   HomeOutlined,
+  TrophyOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 
@@ -45,6 +46,16 @@ const BasicLayout = () => {
       key: "/position",
       icon: <WalletOutlined />,
       label: <span>持仓查询 <span className="menu-sub">POSITION</span></span>,
+    },
+    {
+      key: "/leaderboard",
+      icon: <TrophyOutlined />,
+      label: <span>排行榜 <span className="menu-sub">LEADERBOARD</span></span>,
+    },
+    {
+      key: "/profile",
+      icon: <UserOutlined />,
+      label: <span>个人中心 <span className="menu-sub">PROFILE</span></span>,
     },
     ...(user.role === "ADMIN"
       ? [

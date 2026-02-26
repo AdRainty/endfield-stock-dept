@@ -10,6 +10,8 @@ import Position from "./pages/Position";
 import OrdersHistory from "./pages/OrdersHistory";
 import AdminUsers from "./pages/AdminUsers";
 import AdminExchange from "./pages/AdminExchange";
+import Profile from "./pages/Profile";
+import Leaderboard from "./pages/Leaderboard";
 
 // 简单路由守卫
 const ProtectedRoute = ({ children }) => {
@@ -31,6 +33,8 @@ function App() {
           <Route path="market" element={<Market />} />
           <Route path="orders" element={<OrdersHistory />} />
           <Route path="position" element={<Position />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="leaderboard" element={<Leaderboard />} />
           <Route path="admin" element={<Navigate to="/admin/users" replace />} />
           <Route path="admin/users" element={<AdminUsers />} />
           <Route path="admin/exchange" element={<AdminExchange />} />

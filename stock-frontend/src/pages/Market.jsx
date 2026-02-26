@@ -27,6 +27,7 @@ const Market = () => {
   const prevPricesRef = useRef({});
   const selectedInstrumentRef = useRef(null);
   const orderBookRef = useRef(null);
+  const selectedExchangeRef = useRef(null);
 
   // 判断当前是否在交易时间内（9:30-15:00）
   const checkTradingTime = () => {
@@ -46,7 +47,8 @@ const Market = () => {
   useEffect(() => {
     selectedInstrumentRef.current = selectedInstrument;
     orderBookRef.current = orderBook;
-  }, [selectedInstrument, orderBook]);
+    selectedExchangeRef.current = selectedExchange;
+  }, [selectedInstrument, orderBook, selectedExchange]);
 
   // 获取交易所列表
   const getExchanges = async () => {
@@ -112,9 +114,9 @@ const Market = () => {
 
   // 获取档口数据
   const getOrderBook = async () => {
-    if (!selectedExchange || !selectedInstrument) return;
+    if (!selectedExchangeRef.current || !selectedInstrumentRef.current) return;
     try {
-      const res = await axios.get(`/api/market/orderbook/${selectedExchange}/${selectedInstrument}`);
+      const res = await axios.get(`/api/market/orderbook/${selectedExchangeRef.current}/${selectedInstrumentRef.current}`);
       if (res.data.code === 0) {
         setOrderBook(res.data.data);
       }
@@ -254,10 +256,11 @@ const Market = () => {
     }
   }, [selectedExchange]);
 
-  // 品种变化时加载持仓
+  // 品种变化时加载持仓和档口
   useEffect(() => {
     if (selectedExchange && selectedInstrument) {
       getPosition(); // 获取持仓
+      getOrderBook(); // 获取档口数据（立即获取一次）
     }
   }, [selectedExchange, selectedInstrument]);
 

@@ -1,12 +1,10 @@
 package com.adrainty.stock.service.impl;
 
-import com.adrainty.stock.entity.AllocationRecord;
 import com.adrainty.stock.entity.Exchange;
 import com.adrainty.stock.entity.Instrument;
 import com.adrainty.stock.entity.User;
 import com.adrainty.stock.enums.UserRole;
 import com.adrainty.stock.exception.BusinessException;
-import com.adrainty.stock.mapper.AllocationRecordMapper;
 import com.adrainty.stock.mapper.ExchangeMapper;
 import com.adrainty.stock.mapper.InstrumentMapper;
 import com.adrainty.stock.mapper.UserMapper;
@@ -18,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -33,7 +30,6 @@ import java.util.*;
 public class AdminServiceImpl implements AdminService {
 
     private final UserMapper userMapper;
-    private final AllocationRecordMapper allocationRecordMapper;
     private final CapitalService capitalService;
     private final ExchangeMapper exchangeMapper;
     private final InstrumentMapper instrumentMapper;
@@ -58,26 +54,13 @@ public class AdminServiceImpl implements AdminService {
             throw BusinessException.of("目标用户不存在");
         }
 
-        // 执行分配
+        // 执行分配（直接增加到用户可用资金）
         capitalService.addCapital(targetUserId, exchangeId, amount,
                 "ALLOC_" + UUID.randomUUID().toString().substring(0, 8),
                 "管理员分配：" + reason);
 
-        // 记录分配记录
-        AllocationRecord recordData = new AllocationRecord();
-        recordData.setAllocationNo("ALLOC_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16));
-        recordData.setUserId(targetUserId);
-        recordData.setExchangeId(exchangeId);
-        recordData.setAmount(amount);
-        recordData.setBalanceAfter(capitalService.getAvailableCapital(targetUserId, exchangeId));
-        recordData.setReason(reason);
-        recordData.setAdminUserId(adminUserId);
-        recordData.setOperateTime(LocalDateTime.now());
-
-        allocationRecordMapper.insert(recordData);
-
-        log.info("管理员分配原能：adminUserId={}, targetUserId={}, exchangeId={}, amount={}, reason={}",
-                adminUserId, targetUserId, exchangeId, amount, reason);
+        log.info("管理员分配资金：adminUserId={}, targetUserId={}, exchangeId={}, amount={}",
+                adminUserId, targetUserId, exchangeId, amount);
     }
 
     @Override
@@ -104,36 +87,15 @@ public class AdminServiceImpl implements AdminService {
         result.put("avatar", user.getAvatar());
         result.put("role", user.getRole().getCode());
         result.put("status", user.getStatus());
+        result.put("availableCapital", user.getAvailableCapital() != null ? user.getAvailableCapital() : BigDecimal.ZERO);
+        result.put("lockedCapital", user.getLockedCapital() != null ? user.getLockedCapital() : BigDecimal.ZERO);
+        result.put("totalCapital", (user.getAvailableCapital() != null ? user.getAvailableCapital() : BigDecimal.ZERO)
+            .add(user.getLockedCapital() != null ? user.getLockedCapital() : BigDecimal.ZERO));
         result.put("createdAt", user.getCreatedAt());
         result.put("lastLoginAt", user.getLastLoginAt());
         result.put("lastLoginIp", user.getLastLoginIp());
 
         return result;
-    }
-
-    @Override
-    public List<Map<String, Object>> getAllocationRecords(Long userId) {
-        List<AllocationRecord> records;
-
-        if (userId != null) {
-            records = allocationRecordMapper.findByUserIdOrderByOperateTimeDesc(userId);
-        } else {
-            records = allocationRecordMapper.selectList(null);
-        }
-
-        return records.stream().map(r -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", r.getId());
-            map.put("allocationNo", r.getAllocationNo());
-            map.put("userId", r.getUserId());
-            map.put("exchangeId", r.getExchangeId());
-            map.put("amount", r.getAmount());
-            map.put("balanceAfter", r.getBalanceAfter());
-            map.put("reason", r.getReason());
-            map.put("adminUserId", r.getAdminUserId());
-            map.put("operateTime", r.getOperateTime());
-            return map;
-        }).toList();
     }
 
     @Override
@@ -146,13 +108,16 @@ public class AdminServiceImpl implements AdminService {
         stats.put("normalUsers", allUsers.stream().filter(u -> u.getStatus() == 1).count());
         stats.put("adminUsers", allUsers.stream().filter(u -> u.getRole() == UserRole.ADMIN).count());
 
-        // 分配记录统计
-        List<AllocationRecord> allRecords = allocationRecordMapper.selectList(null);
-        BigDecimal totalAllocated = allRecords.stream()
-                .map(AllocationRecord::getAmount)
+        // 资金统计
+        BigDecimal totalAvailable = allUsers.stream()
+                .map(u -> u.getAvailableCapital() != null ? u.getAvailableCapital() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        stats.put("totalAllocated", totalAllocated);
-        stats.put("allocationCount", allRecords.size());
+        BigDecimal totalLocked = allUsers.stream()
+                .map(u -> u.getLockedCapital() != null ? u.getLockedCapital() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        stats.put("totalAvailable", totalAvailable);
+        stats.put("totalLocked", totalLocked);
+        stats.put("totalCapital", totalAvailable.add(totalLocked));
 
         return stats;
     }

@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1.0.3-add-user-capital
+      author: adrainty
+      comment: 添加用户资金字段（可用资金、锁定资金）
+      changes:
+        - addColumn:
+            tableName: sys_user
+            columns:
+              - column:
+                  name: available_capital
+                  type: DECIMAL(18,2)
+                  defaultValueNumeric: 0.00
+                  remarks: 可用资金
+              - column:
+                  name: locked_capital
+                  type: DECIMAL(18,2)
+                  defaultValueNumeric: 0.00
+                  remarks: 锁定资金（买入委托冻结）

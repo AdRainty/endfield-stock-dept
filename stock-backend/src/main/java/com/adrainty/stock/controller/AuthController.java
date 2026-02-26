@@ -105,6 +105,8 @@ public class AuthController {
         result.put("avatar", user.getAvatar());
         result.put("role", user.getRole().getCode());
         result.put("status", user.getStatus());
+        result.put("createdAt", user.getCreatedAt());
+        result.put("availableCapital", user.getAvailableCapital());
         return ResponseEntity.ok(GlobalExceptionHandler.ApiResult.success(result));
     }
 }

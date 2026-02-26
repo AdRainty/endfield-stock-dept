@@ -3,9 +3,11 @@ package com.adrainty.stock.service.impl;
 import com.adrainty.stock.dto.CapitalAccountDTO;
 import com.adrainty.stock.entity.CapitalFlow;
 import com.adrainty.stock.entity.Exchange;
+import com.adrainty.stock.entity.User;
 import com.adrainty.stock.entity.UserPosition;
 import com.adrainty.stock.mapper.CapitalFlowMapper;
 import com.adrainty.stock.mapper.ExchangeMapper;
+import com.adrainty.stock.mapper.UserMapper;
 import com.adrainty.stock.mapper.UserPositionMapper;
 import com.adrainty.stock.service.CapitalService;
 import lombok.RequiredArgsConstructor;
@@ -16,13 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 资金服务实现类
- * 使用内存存储用户资金（生产环境应该使用数据库）
+ * 使用数据库 User 表存储用户资金（available_capital、locked_capital）
  *
  * @author adrainty
  * @since 2026-02-26
@@ -35,17 +35,17 @@ public class CapitalServiceImpl implements CapitalService {
     private final CapitalFlowMapper capitalFlowMapper;
     private final UserPositionMapper userPositionMapper;
     private final ExchangeMapper exchangeMapper;
-
-    // 内存存储用户资金：key = userId_exchangeId
-    private static final Map<String, BigDecimal> AVAILABLE_CAPITAL = new ConcurrentHashMap<>();
-    private static final Map<String, BigDecimal> FROZEN_CAPITAL = new ConcurrentHashMap<>();
+    private final UserMapper userMapper;
 
     @Override
     public CapitalAccountDTO getAccount(Long userId, Long exchangeId) {
-        String key = getKey(userId, exchangeId);
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("用户不存在：" + userId);
+        }
 
-        BigDecimal available = AVAILABLE_CAPITAL.getOrDefault(key, BigDecimal.ZERO);
-        BigDecimal frozen = FROZEN_CAPITAL.getOrDefault(key, BigDecimal.ZERO);
+        BigDecimal available = user.getAvailableCapital() != null ? user.getAvailableCapital() : BigDecimal.ZERO;
+        BigDecimal locked = user.getLockedCapital() != null ? user.getLockedCapital() : BigDecimal.ZERO;
 
         // 计算持仓市值和盈亏
         List<UserPosition> positions = userPositionMapper.findByUserIdAndExchangeId(userId, exchangeId);
@@ -66,7 +66,6 @@ public class CapitalServiceImpl implements CapitalService {
             totalProfitLoss = totalProfitLoss.add(positionPL);
 
             // 当日盈亏：这里简化为当前持仓盈亏（实际应该对比昨日收盘价）
-            // 如果没有昨收数据，暂且用持仓盈亏作为当日盈亏
             todayProfitLoss = todayProfitLoss.add(positionPL);
         }
 
@@ -79,9 +78,9 @@ public class CapitalServiceImpl implements CapitalService {
         dto.setExchangeId(exchangeId);
         dto.setExchangeName(getExchangeName(exchangeId));
         dto.setAvailable(available);
-        dto.setFrozen(frozen);
+        dto.setFrozen(locked);
         dto.setPositionValue(positionValue);
-        dto.setTotalAsset(available.add(positionValue));
+        dto.setTotalAsset(available.add(locked).add(positionValue)); // 总资金 = 可用 + 锁定 + 持仓市值
         dto.setTotalProfitLoss(totalProfitLoss);
         dto.setTodayProfitLoss(todayProfitLoss);
         dto.setPositionProfitLoss(positionProfitLoss);
@@ -90,92 +89,126 @@ public class CapitalServiceImpl implements CapitalService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean freezeCapital(Long userId, Long exchangeId, BigDecimal amount, String refNo) {
-        String key = getKey(userId, exchangeId);
-        BigDecimal available = AVAILABLE_CAPITAL.getOrDefault(key, BigDecimal.ZERO);
-
-        if (available.compareTo(amount) < 0) {
-            log.warn("资金不足：userId={}, exchangeId={}, available={}, need={}", userId, exchangeId, available, amount);
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            log.warn("用户不存在：userId={}", userId);
             return false;
         }
 
-        AVAILABLE_CAPITAL.put(key, available.subtract(amount));
-        BigDecimal frozen = FROZEN_CAPITAL.getOrDefault(key, BigDecimal.ZERO);
-        FROZEN_CAPITAL.put(key, frozen.add(amount));
+        BigDecimal available = user.getAvailableCapital() != null ? user.getAvailableCapital() : BigDecimal.ZERO;
+        if (available.compareTo(amount) < 0) {
+            log.warn("可用资金不足：userId={}, available={}, need={}", userId, available, amount);
+            return false;
+        }
 
-        log.debug("冻结资金：userId={}, exchangeId={}, amount={}, refNo={}", userId, exchangeId, amount, refNo);
+        user.setAvailableCapital(available.subtract(amount));
+        BigDecimal locked = user.getLockedCapital() != null ? user.getLockedCapital() : BigDecimal.ZERO;
+        user.setLockedCapital(locked.add(amount));
+
+        userMapper.updateById(user);
+
+        log.debug("冻结资金：userId={}, amount={}, refNo={}, available={}, locked={}",
+            userId, amount, refNo, user.getAvailableCapital(), user.getLockedCapital());
         return true;
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean unfreezeCapital(Long userId, Long exchangeId, BigDecimal amount, String refNo) {
-        String key = getKey(userId, exchangeId);
-        BigDecimal frozen = FROZEN_CAPITAL.getOrDefault(key, BigDecimal.ZERO);
-
-        if (frozen.compareTo(amount) < 0) {
-            log.warn("冻结资金不足：userId={}, exchangeId={}, frozen={}, need={}", userId, exchangeId, frozen, amount);
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            log.warn("用户不存在：userId={}", userId);
             return false;
         }
 
-        FROZEN_CAPITAL.put(key, frozen.subtract(amount));
-        BigDecimal available = AVAILABLE_CAPITAL.getOrDefault(key, BigDecimal.ZERO);
-        AVAILABLE_CAPITAL.put(key, available.add(amount));
+        BigDecimal locked = user.getLockedCapital() != null ? user.getLockedCapital() : BigDecimal.ZERO;
+        if (locked.compareTo(amount) < 0) {
+            log.warn("锁定资金不足：userId={}, locked={}, need={}", userId, locked, amount);
+            return false;
+        }
 
-        log.debug("解冻资金：userId={}, exchangeId={}, amount={}, refNo={}", userId, exchangeId, amount, refNo);
+        user.setLockedCapital(locked.subtract(amount));
+        BigDecimal available = user.getAvailableCapital() != null ? user.getAvailableCapital() : BigDecimal.ZERO;
+        user.setAvailableCapital(available.add(amount));
+
+        userMapper.updateById(user);
+
+        log.debug("解冻资金：userId={}, amount={}, refNo={}, available={}, locked={}",
+            userId, amount, refNo, user.getAvailableCapital(), user.getLockedCapital());
         return true;
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean deductCapital(Long userId, Long exchangeId, BigDecimal amount, String refNo, String remark) {
-        String key = getKey(userId, exchangeId);
-        BigDecimal available = AVAILABLE_CAPITAL.getOrDefault(key, BigDecimal.ZERO);
-
-        if (available.compareTo(amount) < 0) {
-            log.warn("资金不足：userId={}, exchangeId={}, available={}, need={}", userId, exchangeId, available, amount);
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            log.warn("用户不存在：userId={}", userId);
             return false;
         }
 
-        AVAILABLE_CAPITAL.put(key, available.subtract(amount));
-
-        // 记录资金流水
-        recordCapitalFlow(userId, exchangeId, amount.negate(), AVAILABLE_CAPITAL.get(key), refNo, remark);
-
-        log.debug("扣除资金：userId={}, exchangeId={}, amount={}, remark={}", userId, exchangeId, amount, remark);
-        return true;
-    }
-
-    @Override
-    @Transactional
-    public boolean addCapital(Long userId, Long exchangeId, BigDecimal amount, String refNo, String remark) {
-        String key = getKey(userId, exchangeId);
-        BigDecimal available = AVAILABLE_CAPITAL.getOrDefault(key, BigDecimal.ZERO);
-        AVAILABLE_CAPITAL.put(key, available.add(amount));
-
-        // 记录资金流水
-        recordCapitalFlow(userId, exchangeId, amount, AVAILABLE_CAPITAL.get(key), refNo, remark);
-
-        log.debug("增加资金：userId={}, exchangeId={}, amount={}, remark={}", userId, exchangeId, amount, remark);
-        return true;
-    }
-
-    @Override
-    @Transactional
-    public void initCapital(Long userId, Long exchangeId, BigDecimal initialAmount) {
-        String key = getKey(userId, exchangeId);
-
-        if (!AVAILABLE_CAPITAL.containsKey(key)) {
-            AVAILABLE_CAPITAL.put(key, initialAmount);
-            FROZEN_CAPITAL.put(key, BigDecimal.ZERO);
-
-            // 记录资金流水
-            recordCapitalFlow(userId, exchangeId, initialAmount, initialAmount,
-                "INIT_" + UUID.randomUUID().toString().substring(0, 8), "初始资金");
-
-            log.info("初始化资金：userId={}, exchangeId={}, amount={}", userId, exchangeId, initialAmount);
+        BigDecimal available = user.getAvailableCapital() != null ? user.getAvailableCapital() : BigDecimal.ZERO;
+        if (available.compareTo(amount) < 0) {
+            log.warn("可用资金不足：userId={}, available={}, need={}", userId, available, amount);
+            return false;
         }
+
+        user.setAvailableCapital(available.subtract(amount));
+        userMapper.updateById(user);
+
+        // 记录资金流水
+        recordCapitalFlow(userId, exchangeId, amount.negate(), user.getAvailableCapital(), refNo, remark);
+
+        log.debug("扣除资金：userId={}, amount={}, remark={}, available={}", userId, amount, remark, user.getAvailableCapital());
+        return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean addCapital(Long userId, Long exchangeId, BigDecimal amount, String refNo, String remark) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            log.warn("用户不存在：userId={}", userId);
+            return false;
+        }
+
+        BigDecimal available = user.getAvailableCapital() != null ? user.getAvailableCapital() : BigDecimal.ZERO;
+        user.setAvailableCapital(available.add(amount));
+        userMapper.updateById(user);
+
+        // 记录资金流水
+        recordCapitalFlow(userId, exchangeId, amount, user.getAvailableCapital(), refNo, remark);
+
+        log.debug("增加资金：userId={}, amount={}, remark={}, available={}", userId, amount, remark, user.getAvailableCapital());
+        return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void initCapital(Long userId, Long exchangeId, BigDecimal initialAmount) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            log.warn("用户不存在：userId={}", userId);
+            return;
+        }
+
+        // 如果用户已有资金（不为 0），则不初始化
+        if (user.getAvailableCapital() != null && user.getAvailableCapital().compareTo(BigDecimal.ZERO) > 0) {
+            return;
+        }
+
+        user.setAvailableCapital(initialAmount);
+        user.setLockedCapital(BigDecimal.ZERO);
+        userMapper.updateById(user);
+
+        // 记录资金流水
+        recordCapitalFlow(userId, exchangeId, initialAmount, initialAmount,
+            "INIT_" + UUID.randomUUID().toString().substring(0, 8), "初始资金");
+
+        log.info("初始化资金：userId={}, exchangeId={}, amount={}, available={}",
+            userId, exchangeId, initialAmount, user.getAvailableCapital());
     }
 
     /**
@@ -197,13 +230,6 @@ public class CapitalServiceImpl implements CapitalService {
         capitalFlowMapper.insert(flow);
     }
 
-    private String getKey(Long userId, Long exchangeId) {
-        return userId + "_" + exchangeId;
-    }
-
-    /**
-     * 获取交易所名称
-     */
     private String getExchangeName(Long exchangeId) {
         try {
             Exchange exchange = exchangeMapper.selectById(exchangeId);
@@ -215,9 +241,10 @@ public class CapitalServiceImpl implements CapitalService {
     }
 
     /**
-     * 获取用户资金（内部使用）
+     * 获取可用资金（内部使用）
      */
     public BigDecimal getAvailableCapital(Long userId, Long exchangeId) {
-        return AVAILABLE_CAPITAL.getOrDefault(getKey(userId, exchangeId), BigDecimal.ZERO);
+        User user = userMapper.selectById(userId);
+        return user != null && user.getAvailableCapital() != null ? user.getAvailableCapital() : BigDecimal.ZERO;
     }
 }

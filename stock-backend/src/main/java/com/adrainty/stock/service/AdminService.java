@@ -13,7 +13,7 @@ import java.util.Map;
 public interface AdminService {
 
     /**
-     * 分配原能给用户
+     * 分配资金给用户
      *
      * @param adminUserId 管理员 ID
      * @param targetUserId 目标用户 ID
@@ -31,20 +31,12 @@ public interface AdminService {
     List<Map<String, Object>> getUserList();
 
     /**
-     * 获取用户详情
+     * 获取用户详情（包含资金信息）
      *
      * @param userId 用户 ID
      * @return 用户详情
      */
     Map<String, Object> getUserDetail(Long userId);
-
-    /**
-     * 获取分配记录
-     *
-     * @param userId 用户 ID（可选）
-     * @return 分配记录列表
-     */
-    List<Map<String, Object>> getAllocationRecords(Long userId);
 
     /**
      * 获取统计数据

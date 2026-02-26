@@ -9,6 +9,7 @@ import com.adrainty.stock.enums.OrderType;
 import com.adrainty.stock.mapper.InstrumentMapper;
 import com.adrainty.stock.mapper.OrderMapper;
 import com.adrainty.stock.mapper.TradeRecordMapper;
+import com.adrainty.stock.service.CapitalService;
 import com.adrainty.stock.service.OrderBookService;
 import com.adrainty.stock.service.RedisOrderBook;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,7 @@ public class MatchingEngineImpl implements OrderBookService {
     private final InstrumentMapper instrumentMapper;
     private final RedisOrderBook redisOrderBook;
     private final RedissonClient redissonClient;
+    private final CapitalService capitalService;
 
     private static final String MATCH_LOCK_PREFIX = "match:lock:";
 
@@ -254,7 +256,7 @@ public class MatchingEngineImpl implements OrderBookService {
     }
 
     /**
-     * 更新订单为已成交状态
+     * 更新订单为已成交状态（买单成交时扣除冻结资金）
      */
     private void updateOrderFilled(Long orderId, BigDecimal price, BigDecimal quantity, OrderStatus status) {
         com.adrainty.stock.entity.Order order = orderMapper.selectById(orderId);
@@ -268,6 +270,22 @@ public class MatchingEngineImpl implements OrderBookService {
                 order.setFilledTime(LocalDateTime.now());
             }
             orderMapper.updateById(order);
+
+            // 买单成交后，扣除已成交部分的冻结资金
+            if (order.getOrderType() == OrderType.BUY) {
+                BigDecimal matchAmount = price.multiply(quantity);
+                capitalService.deductCapital(order.getUserId(), order.getExchangeId(),
+                    matchAmount, order.getOrderNo(), "委托成交");
+                // 解冻剩余冻结资金（如果是部分成交或完全成交）
+                if (status == OrderStatus.FILLED) {
+                    BigDecimal remainingFrozen = order.getPrice().multiply(order.getQuantity())
+                        .subtract(filledAmount);
+                    if (remainingFrozen.compareTo(BigDecimal.ZERO) > 0) {
+                        capitalService.unfreezeCapital(order.getUserId(), order.getExchangeId(),
+                            remainingFrozen, order.getOrderNo());
+                    }
+                }
+            }
         }
     }
 
