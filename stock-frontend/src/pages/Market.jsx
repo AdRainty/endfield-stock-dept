@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Select, Tag, Spin } from "antd";
 import { LineChartOutlined, CaretUpOutlined, CaretDownOutlined, DashboardOutlined } from "@ant-design/icons";
 import axios from "axios";
@@ -12,6 +12,9 @@ const Market = () => {
   const [selectedInstrument, setSelectedInstrument] = useState(null);
   const [orderBook, setOrderBook] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [flashState, setFlashState] = useState({});
+
+  const prevPricesRef = useRef({});
 
   // 获取交易所列表
   const getExchanges = async () => {
@@ -28,6 +31,32 @@ const Market = () => {
     }
   };
 
+  // 处理价格更新和闪烁效果
+  const updateInstruments = (newData) => {
+    // 检测价格变化
+    newData.forEach(inst => {
+      const code = inst.instrumentCode;
+      const prevPrice = prevPricesRef.current[code];
+
+      if (prevPrice !== undefined && prevPrice !== inst.currentPrice) {
+        const direction = inst.currentPrice > prevPrice ? 'rise' : 'fall';
+        setFlashState(prev => ({ ...prev, [code]: direction }));
+
+        // 1.5 秒后清除闪烁
+        setTimeout(() => {
+          setFlashState(prev => ({ ...prev, [code]: null }));
+        }, 1500);
+      }
+    });
+
+    // 更新引用
+    newData.forEach(inst => {
+      prevPricesRef.current[inst.instrumentCode] = inst.currentPrice;
+    });
+
+    setInstruments(newData);
+  };
+
   // 获取品种列表
   const getInstruments = async () => {
     if (!selectedExchange) return;
@@ -35,9 +64,11 @@ const Market = () => {
     try {
       const res = await axios.get(`/api/exchange/${selectedExchange}/instruments`);
       if (res.data.code === 0) {
-        setInstruments(res.data.data);
-        if (res.data.data.length > 0) {
-          setSelectedInstrument(res.data.data[0].instrumentCode);
+        const newData = res.data.data;
+        updateInstruments(newData);
+
+        if (newData.length > 0 && !selectedInstrument) {
+          setSelectedInstrument(newData[0].instrumentCode);
         }
       }
     } catch (error) {
@@ -60,16 +91,20 @@ const Market = () => {
     }
   };
 
+  // 初始化加载交易所
   useEffect(() => {
     getExchanges();
   }, []);
 
+  // 交易所变化时加载品种
   useEffect(() => {
     if (selectedExchange) {
       getInstruments();
+      prevPricesRef.current = {}; // 重置价格引用
     }
   }, [selectedExchange]);
 
+  // 档口数据轮询
   useEffect(() => {
     if (selectedExchange && selectedInstrument) {
       getOrderBook();
@@ -77,6 +112,22 @@ const Market = () => {
       return () => clearInterval(timer);
     }
   }, [selectedExchange, selectedInstrument]);
+
+  // 品种价格轮询（左侧列表）
+  useEffect(() => {
+    if (selectedExchange) {
+      const timer = setInterval(() => {
+        axios.get(`/api/exchange/${selectedExchange}/instruments`)
+          .then(res => {
+            if (res.data.code === 0) {
+              updateInstruments(res.data.data);
+            }
+          })
+          .catch(err => console.error("刷新品种失败", err));
+      }, 3000);
+      return () => clearInterval(timer);
+    }
+  }, [selectedExchange]);
 
   return (
     <div className="market-page">
@@ -119,33 +170,36 @@ const Market = () => {
             {loading && <Spin size="small" className="panel-loader" />}
           </div>
           <div className="instruments-list">
-            {instruments.map((inst) => (
-              <div
-                key={inst.instrumentCode}
-                className={`instrument-card ${selectedInstrument === inst.instrumentCode ? 'active' : ''}`}
-                onClick={() => setSelectedInstrument(inst.instrumentCode)}
-              >
-                <div className="inst-header">
-                  <span className="inst-code">{inst.instrumentCode}</span>
-                  <Tag className={`inst-tag type-${inst.instrumentCode?.charAt(0)}`}>
-                    {inst.name}
-                  </Tag>
-                </div>
-                <div className="inst-body">
-                  <div className="inst-price">
-                    <span className="price-label">现价</span>
-                    <span className="price-value">{inst.currentPrice?.toFixed(2)}</span>
+            {instruments.map((inst) => {
+              const flash = flashState[inst.instrumentCode];
+              return (
+                <div
+                  key={inst.instrumentCode}
+                  className={`instrument-card ${selectedInstrument === inst.instrumentCode ? 'active' : ''} ${flash ? 'flash-' + flash : ''}`}
+                  onClick={() => setSelectedInstrument(inst.instrumentCode)}
+                >
+                  <div className="inst-header">
+                    <span className="inst-code">{inst.instrumentCode}</span>
+                    <Tag className={`inst-tag type-${inst.instrumentCode?.charAt(0)}`}>
+                      {inst.name}
+                    </Tag>
                   </div>
-                  <div className={`inst-change ${inst.changePercent >= 0 ? 'rise' : 'fall'}`}>
-                    {inst.changePercent >= 0 ? <CaretUpOutlined /> : <CaretDownOutlined />}
-                    <span>{inst.changePercent >= 0 ? '+' : ''}{inst.changePercent?.toFixed(2)}%</span>
+                  <div className="inst-body">
+                    <div className="inst-price">
+                      <span className="price-label">现价</span>
+                      <span className={`price-value ${flash || ''}`}>{inst.currentPrice?.toFixed(2)}</span>
+                    </div>
+                    <div className={`inst-change ${inst.changePercent >= 0 ? 'rise' : 'fall'}`}>
+                      {inst.changePercent >= 0 ? <CaretUpOutlined /> : <CaretDownOutlined />}
+                      <span>{inst.changePercent >= 0 ? '+' : ''}{inst.changePercent?.toFixed(2)}%</span>
+                    </div>
+                  </div>
+                  <div className="inst-footer">
+                    <span className="inst-vol">成交量：{inst.volume?.toLocaleString()}</span>
                   </div>
                 </div>
-                <div className="inst-footer">
-                  <span className="inst-vol">成交量：{inst.volume?.toLocaleString()}</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

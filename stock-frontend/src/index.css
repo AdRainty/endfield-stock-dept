@@ -706,6 +706,33 @@ body {
   100% { transform: scaleX(1); }
 }
 
+/* 价格闪烁动画 */
+@keyframes flash-rise {
+  0% { background-color: rgba(46, 213, 115, 0.4); color: var(--color-fall); }
+  100% { background-color: transparent; color: var(--text-primary); }
+}
+
+@keyframes flash-fall {
+  0% { background-color: rgba(255, 71, 87, 0.4); color: var(--color-rise); }
+  100% { background-color: transparent; color: var(--text-primary); }
+}
+
+.flash-rise {
+  animation: flash-rise 1.5s ease-out;
+}
+
+.flash-fall {
+  animation: flash-fall 1.5s ease-out;
+}
+
+.instrument-card.flash-rise {
+  animation: flash-rise 1.5s ease-out;
+}
+
+.instrument-card.flash-fall {
+  animation: flash-fall 1.5s ease-out;
+}
+
 /* =====================
    布局组件样式
    ===================== */
