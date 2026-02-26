@@ -1294,35 +1294,37 @@ body {
 }
 
 .inst-tag {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
+  font-size: 11px !important;
+  padding: 2px 8px !important;
+  border-radius: var(--radius-sm) !important;
   font-family: var(--font-mono);
   letter-spacing: 1px;
+  background: transparent !important;
+  border: 1px solid var(--border-color) !important;
 }
 
 .inst-tag.type-能 {
-  background: rgba(255, 107, 53, 0.2);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  background: rgba(255, 107, 53, 0.2) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
 }
 
 .inst-tag.type-材 {
-  background: rgba(0, 212, 199, 0.2);
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  background: rgba(0, 212, 199, 0.2) !important;
+  border-color: var(--color-accent) !important;
+  color: var(--color-accent) !important;
 }
 
 .inst-tag.type-数 {
-  background: rgba(255, 184, 0, 0.2);
-  border-color: var(--color-warning);
-  color: var(--color-warning);
+  background: rgba(255, 184, 0, 0.2) !important;
+  border-color: var(--color-warning) !important;
+  color: var(--color-warning) !important;
 }
 
 .inst-tag.type-技 {
-  background: rgba(114, 137, 218, 0.2);
-  border-color: #7289da;
-  color: #7289da;
+  background: rgba(114, 137, 218, 0.2) !important;
+  border-color: #7289da !important;
+  color: #7289da !important;
 }
 
 .inst-body {
