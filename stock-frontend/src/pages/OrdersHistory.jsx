@@ -9,22 +9,6 @@ const OrdersHistory = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("");
-  const [exchanges, setExchanges] = useState([]);
-  const [selectedExchange, setSelectedExchange] = useState(null);
-
-  const getExchanges = async () => {
-    try {
-      const res = await axios.get("/api/exchange/list");
-      if (res.data.code === 0) {
-        setExchanges(res.data.data);
-        if (res.data.data.length > 0) {
-          setSelectedExchange(res.data.data[0].id);
-        }
-      }
-    } catch (error) {
-      console.error("获取交易所列表失败", error);
-    }
-  };
 
   const getOrders = async () => {
     setLoading(true);
@@ -48,7 +32,6 @@ const OrdersHistory = () => {
   };
 
   useEffect(() => {
-    getExchanges();
     getOrders();
   }, []);
 
@@ -66,13 +49,6 @@ const OrdersHistory = () => {
       key: "orderNo",
       width: 200,
       render: (val) => <span className="order-no">{val}</span>,
-    },
-    {
-      title: "交易所",
-      dataIndex: "exchangeName",
-      key: "exchangeName",
-      width: 100,
-      render: (val) => <span className="exchange-name">{val}</span>,
     },
     {
       title: "品种",
@@ -227,7 +203,7 @@ const OrdersHistory = () => {
             ))}
           </Select>
         </div>
-        <div className="filter-item">
+        <div className="filter-item" style={{ marginLeft: 'auto' }}>
           <Button
             type="primary"
             icon={<ThunderboltOutlined />}

@@ -3448,3 +3448,21 @@ body {
   color: var(--color-primary);
   font-weight: 600;
 }
+
+/* =====================
+   委托记录页面样式（简化版）
+   ===================== */
+.trade-page-simple {
+  height: calc(100vh - 48px - 40px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;
+}
+
+.action-bar {
+  padding: 16px 20px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+}
