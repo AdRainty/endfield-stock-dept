@@ -2,6 +2,7 @@ package com.adrainty.stock.service.impl;
 
 import com.adrainty.stock.dto.OrderBookDTO;
 import com.adrainty.stock.entity.Instrument;
+import com.adrainty.stock.entity.Order;
 import com.adrainty.stock.entity.TradeRecord;
 import com.adrainty.stock.enums.OrderStatus;
 import com.adrainty.stock.enums.OrderType;
@@ -49,7 +50,7 @@ public class MatchingEngineImpl implements OrderBookService {
 
     @Override
     public BigDecimal addBidOrder(Long exchangeId, String instrumentCode, BigDecimal price,
-                                   BigDecimal quantity, Long orderId) {
+                                  BigDecimal quantity, Long orderId) {
         String lockKey = MATCH_LOCK_PREFIX + exchangeId + "_" + instrumentCode;
         RLock lock = redissonClient.getLock(lockKey);
 
@@ -79,7 +80,7 @@ public class MatchingEngineImpl implements OrderBookService {
 
     @Override
     public BigDecimal addAskOrder(Long exchangeId, String instrumentCode, BigDecimal price,
-                                   BigDecimal quantity, Long orderId) {
+                                  BigDecimal quantity, Long orderId) {
         String lockKey = MATCH_LOCK_PREFIX + exchangeId + "_" + instrumentCode;
         RLock lock = redissonClient.getLock(lockKey);
 
@@ -120,16 +121,17 @@ public class MatchingEngineImpl implements OrderBookService {
 
     /**
      * 撮合买单
+     *
      * @return 成交数量
      */
     private BigDecimal matchBidOrder(Long exchangeId, String instrumentCode,
-                                      BigDecimal bidPrice, BigDecimal bidQuantity, Long orderId) {
+                                     BigDecimal bidPrice, BigDecimal bidQuantity, Long orderId) {
         BigDecimal matchedQty = BigDecimal.ZERO;
         BigDecimal remainingQty = bidQuantity;
 
         // 查找可撮合的卖单（价格 <= 买单价格）
         List<RedisOrderBook.OrderDetail> matchableAsks =
-            redisOrderBook.findMatchableAsks(exchangeId, instrumentCode, bidPrice);
+                redisOrderBook.findMatchableAsks(exchangeId, instrumentCode, bidPrice);
 
         for (RedisOrderBook.OrderDetail ask : matchableAsks) {
             if (remainingQty.compareTo(BigDecimal.ZERO) <= 0) break;
@@ -139,28 +141,28 @@ public class MatchingEngineImpl implements OrderBookService {
 
             // 创建成交记录
             createTradeRecord(exchangeId, instrumentCode, ask.getOrderId(), orderId,
-                             ask.getPrice(), matchQty);
+                    ask.getPrice(), matchQty);
 
             // 更新卖单数量
             BigDecimal askRemainingQty = ask.getQuantity().subtract(matchQty);
             if (askRemainingQty.compareTo(BigDecimal.ZERO) <= 0) {
                 // 卖单完全成交，更新订单状态
                 updateOrderFilled(ask.getOrderId(), ask.getPrice(), ask.getQuantity(),
-                                 OrderStatus.FILLED);
+                        OrderStatus.FILLED);
                 redisOrderBook.removeOrder(exchangeId, instrumentCode, ask.getOrderId());
             } else {
                 // 卖单部分成交
                 updateOrderFilled(ask.getOrderId(), ask.getPrice(), matchQty,
-                                 OrderStatus.PARTIALLY_FILLED);
+                        OrderStatus.PARTIALLY_FILLED);
                 redisOrderBook.updateOrderQuantity(exchangeId, instrumentCode,
-                                                   ask.getOrderId(), askRemainingQty);
+                        ask.getOrderId(), askRemainingQty);
             }
 
             matchedQty = matchedQty.add(matchQty);
             remainingQty = remainingQty.subtract(matchQty);
 
             log.info("买单撮合：buyOrderId={}, sellOrderId={}, matchPrice={}, matchQty={}, remainingQty={}",
-                orderId, ask.getOrderId(), ask.getPrice(), matchQty, remainingQty);
+                    orderId, ask.getOrderId(), ask.getPrice(), matchQty, remainingQty);
         }
 
         // 更新买单状态
@@ -173,16 +175,17 @@ public class MatchingEngineImpl implements OrderBookService {
 
     /**
      * 撮合卖单
+     *
      * @return 成交数量
      */
     private BigDecimal matchAskOrder(Long exchangeId, String instrumentCode,
-                                      BigDecimal askPrice, BigDecimal askQuantity, Long orderId) {
+                                     BigDecimal askPrice, BigDecimal askQuantity, Long orderId) {
         BigDecimal matchedQty = BigDecimal.ZERO;
         BigDecimal remainingQty = askQuantity;
 
         // 查找可撮合的买单（价格 >= 卖单价格）
         List<RedisOrderBook.OrderDetail> matchableBids =
-            redisOrderBook.findMatchableBids(exchangeId, instrumentCode, askPrice);
+                redisOrderBook.findMatchableBids(exchangeId, instrumentCode, askPrice);
 
         for (RedisOrderBook.OrderDetail bid : matchableBids) {
             if (remainingQty.compareTo(BigDecimal.ZERO) <= 0) break;
@@ -192,28 +195,28 @@ public class MatchingEngineImpl implements OrderBookService {
 
             // 创建成交记录
             createTradeRecord(exchangeId, instrumentCode, orderId, bid.getOrderId(),
-                             bid.getPrice(), matchQty);
+                    bid.getPrice(), matchQty);
 
             // 更新买单数量
             BigDecimal bidRemainingQty = bid.getQuantity().subtract(matchQty);
             if (bidRemainingQty.compareTo(BigDecimal.ZERO) <= 0) {
                 // 买单完全成交，更新订单状态
                 updateOrderFilled(bid.getOrderId(), bid.getPrice(), bid.getQuantity(),
-                                 OrderStatus.FILLED);
+                        OrderStatus.FILLED);
                 redisOrderBook.removeOrder(exchangeId, instrumentCode, bid.getOrderId());
             } else {
                 // 买单部分成交
                 updateOrderFilled(bid.getOrderId(), bid.getPrice(), matchQty,
-                                 OrderStatus.PARTIALLY_FILLED);
+                        OrderStatus.PARTIALLY_FILLED);
                 redisOrderBook.updateOrderQuantity(exchangeId, instrumentCode,
-                                                   bid.getOrderId(), bidRemainingQty);
+                        bid.getOrderId(), bidRemainingQty);
             }
 
             matchedQty = matchedQty.add(matchQty);
             remainingQty = remainingQty.subtract(matchQty);
 
             log.info("卖单撮合：sellOrderId={}, buyOrderId={}, matchPrice={}, matchQty={}, remainingQty={}",
-                orderId, bid.getOrderId(), bid.getPrice(), matchQty, remainingQty);
+                    orderId, bid.getOrderId(), bid.getPrice(), matchQty, remainingQty);
         }
 
         // 更新卖单状态
@@ -228,16 +231,23 @@ public class MatchingEngineImpl implements OrderBookService {
      * 创建成交记录
      */
     private void createTradeRecord(Long exchangeId, String instrumentCode,
-                                    Long sellOrderId, Long buyOrderId,
-                                    BigDecimal price, BigDecimal quantity) {
+                                   Long sellOrderId, Long buyOrderId,
+                                   BigDecimal price, BigDecimal quantity) {
+        // 获取买卖双方用户 ID
+        com.adrainty.stock.entity.Order buyOrder = orderMapper.selectById(buyOrderId);
+        com.adrainty.stock.entity.Order sellOrder = orderMapper.selectById(sellOrderId);
+
         TradeRecord record = new TradeRecord();
+        record.setTradeNo("TRD_" + System.currentTimeMillis() + "_" + buyOrderId);
+        record.setOrderNo(buyOrder != null ? buyOrder.getOrderNo() : "");
+        record.setBuyerUserId(buyOrder != null ? buyOrder.getUserId() : null);
+        record.setSellerUserId(sellOrder != null ? sellOrder.getUserId() : null);
         record.setExchangeId(exchangeId);
         record.setInstrumentCode(instrumentCode);
-        record.setBuyOrderId(buyOrderId);
-        record.setSellOrderId(sellOrderId);
+        record.setOrderType(OrderType.BUY);
         record.setPrice(price);
         record.setQuantity(quantity);
-        record.setTurnover(price.multiply(quantity));
+        record.setAmount(price.multiply(quantity));
         record.setTradeTime(LocalDateTime.now());
 
         tradeRecordMapper.insert(record);
@@ -250,7 +260,7 @@ public class MatchingEngineImpl implements OrderBookService {
         com.adrainty.stock.entity.Order order = orderMapper.selectById(orderId);
         if (order != null) {
             BigDecimal filledAmount = (order.getFilledAmount() != null ? order.getFilledAmount() : BigDecimal.ZERO)
-                                     .add(price.multiply(quantity));
+                    .add(price.multiply(quantity));
             order.setFilledQuantity(order.getFilledQuantity().add(quantity));
             order.setFilledAmount(filledAmount);
             order.setStatus(status);
@@ -290,16 +300,16 @@ public class MatchingEngineImpl implements OrderBookService {
 
         // 获取买卖档口（前 5 档）
         List<RedisOrderBook.PriceLevel> bidLevels = redisOrderBook.getPriceLevels(
-            exchangeId, instrumentCode, "bid", 5);
+                exchangeId, instrumentCode, "bid", 5);
         List<RedisOrderBook.PriceLevel> askLevels = redisOrderBook.getPriceLevels(
-            exchangeId, instrumentCode, "ask", 5);
+                exchangeId, instrumentCode, "ask", 5);
 
         List<OrderBookDTO.PriceLevel> bids = bidLevels.stream()
-            .map(l -> new OrderBookDTO.PriceLevel(l.getPrice(), l.getQuantity()))
-            .toList();
+                .map(l -> new OrderBookDTO.PriceLevel(l.getPrice(), l.getQuantity()))
+                .toList();
         List<OrderBookDTO.PriceLevel> asks = askLevels.stream()
-            .map(l -> new OrderBookDTO.PriceLevel(l.getPrice(), l.getQuantity()))
-            .toList();
+                .map(l -> new OrderBookDTO.PriceLevel(l.getPrice(), l.getQuantity()))
+                .toList();
 
         dto.setBids(bids);
         dto.setAsks(asks);
