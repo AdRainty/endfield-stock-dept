@@ -1,93 +1,182 @@
-# endfield-stock-dept
+# 终末地调度卷交易模拟系统
 
+基于《明日方舟：终末地》游戏设定创建的调度卷交易模拟系统。
 
+## 技术栈
 
-## Getting started
+### 后端
+- **框架**: Spring Boot 3.0
+- **JDK**: 17
+- **权限**: Sa-Token
+- **数据库**: MySQL / H2 (开发环境)
+- **ORM**: Spring Data JPA
+- **API 文档**: Knife4j (Swagger)
+- **WebSocket**: Spring WebSocket
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+### 前端
+- **框架**: React 18
+- **构建工具**: Vite 5
+- **UI 库**: Ant Design 5
+- **图表**: Recharts
+- **HTTP**: Axios
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## 功能特性
 
-## Add your files
+### 交易所
+- **四号谷底交易所**: 主要交易能源类调度券
+- **武陵交易所**: 主要交易技术类调度券
 
-* [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+### 交易品种
+每个交易所有 4 个品种：
+- 能源调度券
+- 材料调度券
+- 数据调度券
+- 技术调度券
+
+### 核心功能
+1. **行情中心**: 实时价格、买卖五档、涨跌幅
+2. **交易委托**: 买入/卖出、价格/数量输入、委托记录
+3. **持仓查询**: 持仓数量、成本价、盈亏计算
+4. **用户管理**: 用户列表、状态管理、原能分配
+
+### 权限系统
+- **普通用户**: 持仓查看、交易委托、行情查看
+- **管理员**: 用户管理、原能分配、数据统计
+
+### 登录方式
+- 微信二维码登录（模拟实现）
+- 快捷登录（测试用）
+
+## 快速开始
+
+### 后端启动
+
+```bash
+cd stock-backend
+
+# 开发环境（使用 H2 内存数据库）
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+
+# 生产环境（需要 MySQL）
+mvn spring-boot:run -Dspring-boot.run.profiles=prod
+```
+
+启动后访问：
+- API 地址：http://localhost:8080/api
+- API 文档：http://localhost:8080/api/doc.html
+- H2 控制台（开发环境）：http://localhost:8080/api/h2-console
+
+### 前端启动
+
+```bash
+cd stock-frontend
+
+# 安装依赖
+npm install
+
+# 启动开发服务器
+npm start
+```
+
+启动后访问：http://localhost:3000
+
+## 项目结构
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.adrainty.online/custom/endfield-stock-dept.git
-git branch -M master
-git push -uf origin master
+endfield-stock-dept/
+├── stock-backend/           # Spring Boot 后端
+│   ├── src/main/java/com/adrainty/stock/
+│   │   ├── config/          # 配置类
+│   │   ├── controller/      # 控制器
+│   │   ├── service/         # 服务层
+│   │   ├── repository/      # 数据访问层
+│   │   ├── entity/          # 实体类
+│   │   ├── dto/             # 数据传输对象
+│   │   ├── enums/           # 枚举
+│   │   ├── exception/       # 异常处理
+│   │   └── util/            # 工具类
+│   └── pom.xml
+├── stock-frontend/          # React 前端
+│   ├── src/
+│   │   ├── pages/           # 页面组件
+│   │   ├── layouts/         # 布局组件
+│   │   ├── services/        # API 服务
+│   │   └── utils/           # 工具函数
+│   └── package.json
+└── task.md                  # 开发任务列表
 ```
 
-## Integrate with your tools
+## API 接口
 
-* [Set up project integrations](https://gitlab.adrainty.online/custom/endfield-stock-dept/-/settings/integrations)
+### 认证接口
+- `POST /api/auth/wx-qrcode` - 获取微信二维码
+- `GET /api/auth/wx-qrcode/{scene}` - 检查二维码状态
+- `POST /api/auth/wx-login` - 微信 code 登录
+- `POST /api/auth/logout` - 退出登录
+- `GET /api/auth/user-info` - 获取用户信息
 
-## Collaborate with your team
+### 交易所接口
+- `GET /api/exchange/list` - 获取所有交易所
+- `GET /api/exchange/{exchangeId}/instruments` - 获取交易所品种
 
-* [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+### 行情接口
+- `GET /api/market/instruments` - 获取所有品种行情
+- `GET /api/market/instruments/{exchangeId}` - 获取交易所品种
+- `GET /api/market/instrument/{instrumentCode}` - 获取品种详情
+- `GET /api/market/orderbook/{exchangeId}/{instrumentCode}` - 获取档口数据
 
-## Test and Deploy
+### 交易接口
+- `GET /api/trade/account/{exchangeId}` - 获取资金账户
+- `GET /api/trade/position/{exchangeId}` - 获取持仓列表
+- `POST /api/trade/order` - 下单委托
+- `POST /api/trade/order/{orderNo}/cancel` - 撤单
+- `GET /api/trade/orders` - 获取订单列表
 
-Use the built-in continuous integration in GitLab.
+### 管理员接口
+- `POST /api/admin/allocate` - 分配原能
+- `GET /api/admin/users` - 获取用户列表
+- `GET /api/admin/user/{userId}` - 获取用户详情
+- `POST /api/admin/user/{userId}/status` - 更新用户状态
+- `GET /api/admin/allocations` - 获取分配记录
+- `GET /api/admin/statistics` - 获取统计数据
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+## 游戏规则
 
-***
+### 初始资金
+新用户注册后，每个交易所赠送 **100,000** 调度券原能。
 
-# Editing this README
+### 交易规则
+- 最小交易单位：1 股
+- 价格精度：0.01
+- 无涨跌停限制
+- 无手续费
+- T+0 交易（当日买入可当日卖出）
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+### 价格波动
+价格每 5 秒更新一次，波动范围 -2% 到 +2%。
 
-## Suggestions for a good README
+## 开发进度
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+| 阶段 | 状态 | 完成时间 |
+|------|------|----------|
+| 后端项目初始化 | ✅ 完成 | 2026-02-26 |
+| 数据库设计 | ✅ 完成 | 2026-02-26 |
+| Sa-Token 权限集成 | ✅ 完成 | 2026-02-26 |
+| 微信二维码登录 | ✅ 完成 | 2026-02-26 |
+| 交易所与行情模块 | ✅ 完成 | 2026-02-26 |
+| 档口订单簿与 WebSocket | ✅ 完成 | 2026-02-26 |
+| 交易撮合引擎 | ✅ 完成 | 2026-02-26 |
+| 管理员功能 | ✅ 完成 | 2026-02-26 |
+| 前端项目初始化 | ✅ 完成 | 2026-02-26 |
+| 前端页面开发 | ✅ 完成 | 2026-02-26 |
 
-## Name
-Choose a self-explaining name for your project.
+## 注意事项
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+1. 微信登录功能为模拟实现，实际使用需要对接微信开放平台 API
+2. 开发环境使用 H2 内存数据库，重启后数据清空
+3. 撮合引擎简化实现，生产环境需要更完善的并发处理
+4. 价格波动算法为简单随机游走，可根据需要调整
 
 ## License
-For open source projects, say how it is licensed.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+MIT License
