@@ -926,6 +926,47 @@ body {
   color: var(--color-primary);
 }
 
+/* 子菜单样式 */
+.side-menu :global(.ant-menu-submenu) {
+  margin: 4px 8px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  transition: all var(--transition-base);
+}
+
+.side-menu :global(.ant-menu-submenu > .ant-menu-submenu-title) {
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: var(--radius-md);
+  margin: 0;
+}
+
+.side-menu :global(.ant-menu-submenu:hover > .ant-menu-submenu-title) {
+  background: rgba(255, 107, 53, 0.08);
+  color: var(--text-primary);
+}
+
+.side-menu :global(.ant-menu-submenu-selected > .ant-menu-submenu-title) {
+  background: rgba(255, 107, 53, 0.12);
+  color: var(--color-primary);
+  border-color: rgba(255, 107, 53, 0.3);
+}
+
+.side-menu :global(.ant-menu-submenu .anticon) {
+  font-size: 16px;
+  color: inherit;
+}
+
+.side-menu :global(.ant-menu-item) {
+  margin-left: 24px !important;
+  width: calc(100% - 24px) !important;
+}
+
 .side-nav-footer {
   padding: 16px;
   border-top: 1px solid var(--border-color);
