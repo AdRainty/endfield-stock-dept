@@ -1136,6 +1136,46 @@ body {
   background: var(--color-bg-tertiary);
 }
 
+/* 市场统计数据显示 */
+.market-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 107, 53, 0.03);
+  border-bottom: 1px solid rgba(255, 107, 53, 0.1);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  transition: color var(--transition-base);
+}
+
+.stat-value.rise {
+  color: var(--color-rise);
+}
+
+.stat-value.fall {
+  color: var(--color-fall);
+}
+
 .orderbook-content {
   flex: 1;
   display: flex;
@@ -1451,6 +1491,12 @@ body {
 .price {
   font-weight: 600;
   text-align: right;
+  transition: all var(--transition-fast);
+}
+
+.price:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
 }
 
 .price.ask-price {
@@ -1593,7 +1639,7 @@ body {
 }
 
 .trade-input {
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-secondary) !important;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 6px 10px;
@@ -1603,7 +1649,13 @@ body {
   transition: all var(--transition-fast);
 }
 
+.trade-input:hover {
+  background: var(--color-bg-secondary) !important;
+  border-color: var(--border-light);
+}
+
 .trade-input:focus {
+  background: var(--color-bg-secondary) !important;
   border-color: var(--color-primary);
   outline: none;
   box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);

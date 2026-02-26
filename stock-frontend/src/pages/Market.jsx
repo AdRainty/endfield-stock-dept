@@ -14,6 +14,7 @@ const Market = () => {
   const [orderBook, setOrderBook] = useState(null);
   const [loading, setLoading] = useState(false);
   const [flashState, setFlashState] = useState({});
+  const [marketStats, setMarketStats] = useState({ latestPrice: null, changePercent: null, changeAmount: null });
 
   // 交易相关状态
   const [orderType, setOrderType] = useState("BUY"); // BUY / SELL
@@ -62,14 +63,13 @@ const Market = () => {
           setFlashState(prev => ({ ...prev, [code]: null }));
         }, 1500);
 
-        // 如果是当前选中的品种，同时更新档口显示的最新价和涨跌幅
-        if (code === selectedInstrumentRef.current && orderBookRef.current) {
-          setOrderBook(prev => ({
-            ...prev,
+        // 如果是当前选中的品种，更新市场统计数据（独立状态，不影响档口数据）
+        if (code === selectedInstrumentRef.current) {
+          setMarketStats({
             latestPrice: inst.currentPrice,
             changePercent: inst.changePercent,
             changeAmount: inst.changeAmount
-          }));
+          });
         }
       }
     });
@@ -110,6 +110,12 @@ const Market = () => {
       const res = await axios.get(`/api/market/orderbook/${selectedExchange}/${selectedInstrument}`);
       if (res.data.code === 0) {
         setOrderBook(res.data.data);
+        // 同时初始化市场统计数据
+        setMarketStats({
+          latestPrice: res.data.data.latestPrice,
+          changePercent: res.data.data.changePercent,
+          changeAmount: res.data.data.changeAmount
+        });
       }
     } catch (error) {
       console.error("获取档口失败", error);
@@ -168,6 +174,14 @@ const Market = () => {
     }
   };
 
+  // 点击档口价格时填充委托价格（如果委托价格为空）
+  const handlePriceClick = (price) => {
+    if (!price) return;
+    if (!orderPrice) {
+      setOrderPrice(price.toFixed(2));
+    }
+  };
+
   // 初始化加载交易所
   useEffect(() => {
     getExchanges();
@@ -178,8 +192,14 @@ const Market = () => {
     if (selectedExchange) {
       getInstruments();
       prevPricesRef.current = {}; // 重置价格引用
+      setMarketStats({ latestPrice: null, changePercent: null, changeAmount: null }); // 重置市场统计
     }
   }, [selectedExchange]);
+
+  // 品种变化时重置市场统计
+  useEffect(() => {
+    setMarketStats({ latestPrice: null, changePercent: null, changeAmount: null });
+  }, [selectedInstrument]);
 
   // 档口数据轮询
   useEffect(() => {
@@ -307,6 +327,30 @@ const Market = () => {
             </span>
           </div>
 
+          {/* 最新价和涨跌幅显示 */}
+          {orderBook && (
+            <div className="market-stats">
+              <div className="stat-item">
+                <span className="stat-label">最新价</span>
+                <span className={`stat-value ${marketStats.changePercent >= 0 ? 'rise' : 'fall'}`}>
+                  {marketStats.latestPrice?.toFixed(2) || '-'}
+                </span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-label">涨跌幅</span>
+                <span className={`stat-value ${marketStats.changePercent >= 0 ? 'rise' : 'fall'}`}>
+                  {marketStats.changePercent >= 0 ? '+' : ''}{marketStats.changePercent?.toFixed(2)}%
+                </span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-label">涨跌额</span>
+                <span className={`stat-value ${marketStats.changeAmount >= 0 ? 'rise' : 'fall'}`}>
+                  {marketStats.changeAmount >= 0 ? '+' : ''}{marketStats.changeAmount?.toFixed(2)}
+                </span>
+              </div>
+            </div>
+          )}
+
           {orderBook ? (
             <div className="orderbook-content">
               {/* 卖盘档口 - 从卖 5 到卖 1 */}
@@ -317,7 +361,11 @@ const Market = () => {
                   return (
                     <div key={`ask-${level}`} className="orderbook-row-simple">
                       <span className="level-label">卖{level}</span>
-                      <span className={`price ask-price ${ask.price ? '' : 'empty'}`}>
+                      <span
+                        className={`price ask-price ${ask.price ? '' : 'empty'}`}
+                        onClick={() => handlePriceClick(ask.price)}
+                        style={{ cursor: ask.price ? 'pointer' : 'default' }}
+                      >
                         {ask.price?.toFixed(2) || '-'}
                       </span>
                       <span className={`qty bid-qty ${ask.quantity ? '' : 'empty'}`}>
@@ -339,7 +387,11 @@ const Market = () => {
                   return (
                     <div key={`bid-${level}`} className="orderbook-row-simple">
                       <span className="level-label">买{level}</span>
-                      <span className={`price bid-price ${bid.price ? '' : 'empty'}`}>
+                      <span
+                        className={`price bid-price ${bid.price ? '' : 'empty'}`}
+                        onClick={() => handlePriceClick(bid.price)}
+                        style={{ cursor: bid.price ? 'pointer' : 'default' }}
+                      >
                         {bid.price?.toFixed(2) || '-'}
                       </span>
                       <span className={`qty bid-qty ${bid.quantity ? '' : 'empty'}`}>
