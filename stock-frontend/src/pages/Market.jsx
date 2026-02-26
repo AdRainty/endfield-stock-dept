@@ -15,6 +15,14 @@ const Market = () => {
   const [flashState, setFlashState] = useState({});
 
   const prevPricesRef = useRef({});
+  const selectedInstrumentRef = useRef(null);
+  const orderBookRef = useRef(null);
+
+  // 更新引用
+  useEffect(() => {
+    selectedInstrumentRef.current = selectedInstrument;
+    orderBookRef.current = orderBook;
+  }, [selectedInstrument, orderBook]);
 
   // 获取交易所列表
   const getExchanges = async () => {
@@ -46,6 +54,16 @@ const Market = () => {
         setTimeout(() => {
           setFlashState(prev => ({ ...prev, [code]: null }));
         }, 1500);
+
+        // 如果是当前选中的品种，同时更新档口显示的最新价和涨跌幅
+        if (code === selectedInstrumentRef.current && orderBookRef.current) {
+          setOrderBook(prev => ({
+            ...prev,
+            latestPrice: inst.currentPrice,
+            changePercent: inst.changePercent,
+            changeAmount: inst.changeAmount
+          }));
+        }
       }
     });
 
@@ -248,7 +266,7 @@ const Market = () => {
                   {Array.from({ length: 5 }).map((_, i) => {
                     const bid = orderBook.bids?.[i] || {};
                     const ask = orderBook.asks?.[i] || {};
-                    const level = 5 - i;
+                    const level = i + 1;
                     return (
                       <div key={i} className="orderbook-row" style={{ '--level': level }}>
                         <span className={`cell bid-price ${bid.price ? '' : 'empty'}`}>

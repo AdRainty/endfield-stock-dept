@@ -197,6 +197,26 @@ public class MatchingEngineImpl implements OrderBookService {
             .map(l -> new OrderBookDTO.PriceLevel(l.getPrice(), l.getQuantity()))
             .toList();
 
+        // 如果没有真实订单，生成模拟档口数据
+        if (bids.isEmpty() && asks.isEmpty() && dto.getLatestPrice() != null) {
+            BigDecimal basePrice = dto.getLatestPrice();
+            List<OrderBookDTO.PriceLevel> simulatedBids = new ArrayList<>();
+            List<OrderBookDTO.PriceLevel> simulatedAsks = new ArrayList<>();
+
+            for (int i = 1; i <= 5; i++) {
+                BigDecimal bidPrice = basePrice.multiply(new BigDecimal("0.999").multiply(
+                    new BigDecimal("0.995").pow(i - 1))).setScale(2, java.math.RoundingMode.HALF_UP);
+                BigDecimal askPrice = basePrice.multiply(new BigDecimal("1.001").multiply(
+                    new BigDecimal("1.005").pow(i - 1))).setScale(2, java.math.RoundingMode.HALF_UP);
+                BigDecimal qty = new BigDecimal(1000 + i * 500);
+
+                simulatedBids.add(new OrderBookDTO.PriceLevel(bidPrice, qty));
+                simulatedAsks.add(new OrderBookDTO.PriceLevel(askPrice, qty));
+            }
+            bids = simulatedBids;
+            asks = simulatedAsks;
+        }
+
         dto.setBids(bids);
         dto.setAsks(asks);
 
