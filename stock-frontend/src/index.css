@@ -1954,7 +1954,7 @@ body {
 }
 
 .orders-table {
-  background: var(--color-bg-secondary);
+  background: transparent;
 }
 
 .orders-table :global(.ant-table) {
