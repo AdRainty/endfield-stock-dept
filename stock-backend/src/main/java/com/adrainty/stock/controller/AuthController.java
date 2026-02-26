@@ -62,10 +62,7 @@ public class AuthController {
         if ("SUCCESS".equals(qrScene.getStatus())) {
             // 用户已扫码，进行登录
             LoginResponse loginResponse = userService.wxLogin(
-                    qrScene.getOpenid(),
-                    qrScene.getNickname(),
-                    qrScene.getAvatar(),
-                    null
+                    qrScene.getOpenid()
             );
             // 生成 Sa-Token（角色由 StpInterface 自动获取）
             StpUtil.login(loginResponse.getUserId());

@@ -15,12 +15,9 @@ public interface UserService {
      * 微信登录/注册
      * 
      * @param openid 微信 OpenID
-     * @param nickname 昵称
-     * @param avatar 头像
-     * @param registerIp 注册 IP
      * @return 登录响应
      */
-    LoginResponse wxLogin(String openid, String nickname, String avatar, String registerIp);
+    LoginResponse wxLogin(String openid);
     
     /**
      * 根据 ID 查找用户
