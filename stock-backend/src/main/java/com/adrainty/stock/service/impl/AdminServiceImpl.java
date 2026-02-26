@@ -201,13 +201,13 @@ public class AdminServiceImpl implements AdminService {
     public void addExchange(String name, String code, String description) {
         // 检查代码是否已存在
         List<Exchange> existing = exchangeMapper.selectList(null);
-        if (existing.stream().anyMatch(e -> e.getCode().equals(code))) {
+        if (existing.stream().anyMatch(e -> e.getExchangeCode().equals(code))) {
             throw BusinessException.of("交易所代码已存在");
         }
 
         Exchange exchange = new Exchange();
         exchange.setName(name);
-        exchange.setCode(code);
+        exchange.setExchangeCode(code);
         exchange.setDescription(description);
         exchange.setStatus(1);
 
@@ -224,7 +224,7 @@ public class AdminServiceImpl implements AdminService {
         }
 
         exchange.setName(name);
-        exchange.setCode(code);
+        exchange.setExchangeCode(code);
         exchange.setDescription(description);
         exchangeMapper.updateById(exchange);
 
