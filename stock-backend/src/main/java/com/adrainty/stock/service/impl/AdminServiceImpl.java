@@ -1,10 +1,14 @@
 package com.adrainty.stock.service.impl;
 
 import com.adrainty.stock.entity.AllocationRecord;
+import com.adrainty.stock.entity.Exchange;
+import com.adrainty.stock.entity.Instrument;
 import com.adrainty.stock.entity.User;
 import com.adrainty.stock.enums.UserRole;
 import com.adrainty.stock.exception.BusinessException;
 import com.adrainty.stock.mapper.AllocationRecordMapper;
+import com.adrainty.stock.mapper.ExchangeMapper;
+import com.adrainty.stock.mapper.InstrumentMapper;
 import com.adrainty.stock.mapper.UserMapper;
 import com.adrainty.stock.service.AdminService;
 import com.adrainty.stock.service.CapitalService;
@@ -32,6 +36,8 @@ public class AdminServiceImpl implements AdminService {
     private final UserMapper userMapper;
     private final AllocationRecordMapper allocationRecordMapper;
     private final CapitalService capitalService;
+    private final ExchangeMapper exchangeMapper;
+    private final InstrumentMapper instrumentMapper;
 
     @Override
     @Transactional
@@ -171,5 +177,155 @@ public class AdminServiceImpl implements AdminService {
         userMapper.updateById(user);
 
         log.info("更新用户状态：userId={}, status={}", userId, status);
+    }
+
+    // ==================== 交易所管理 ====================
+
+    @Override
+    public List<Map<String, Object>> getExchangeList() {
+        List<Exchange> exchanges = exchangeMapper.selectList(null);
+        return exchanges.stream().map(e -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", e.getId());
+            map.put("name", e.getName());
+            map.put("code", e.getCode());
+            map.put("status", e.getStatus());
+            map.put("description", e.getDescription());
+            map.put("createdAt", e.getCreatedAt());
+            return map;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void addExchange(String name, String code, String description) {
+        // 检查代码是否已存在
+        List<Exchange> existing = exchangeMapper.selectList(null);
+        if (existing.stream().anyMatch(e -> e.getCode().equals(code))) {
+            throw BusinessException.of("交易所代码已存在");
+        }
+
+        Exchange exchange = new Exchange();
+        exchange.setName(name);
+        exchange.setCode(code);
+        exchange.setDescription(description);
+        exchange.setStatus(1);
+
+        exchangeMapper.insert(exchange);
+        log.info("添加交易所：name={}, code={}", name, code);
+    }
+
+    @Override
+    @Transactional
+    public void updateExchange(Long exchangeId, String name, String code, String description) {
+        Exchange exchange = exchangeMapper.selectById(exchangeId);
+        if (exchange == null) {
+            throw BusinessException.of("交易所不存在");
+        }
+
+        exchange.setName(name);
+        exchange.setCode(code);
+        exchange.setDescription(description);
+        exchangeMapper.updateById(exchange);
+
+        log.info("更新交易所：id={}, name={}, code={}", exchangeId, name, code);
+    }
+
+    @Override
+    @Transactional
+    public void updateExchangeStatus(Long exchangeId, Integer status) {
+        Exchange exchange = exchangeMapper.selectById(exchangeId);
+        if (exchange == null) {
+            throw BusinessException.of("交易所不存在");
+        }
+
+        exchange.setStatus(status);
+        exchangeMapper.updateById(exchange);
+
+        log.info("更新交易所状态：id={}, status={}", exchangeId, status);
+    }
+
+    // ==================== 品种管理 ====================
+
+    @Override
+    public List<Map<String, Object>> getInstrumentList() {
+        List<Instrument> instruments = instrumentMapper.selectList(null);
+        return instruments.stream().map(i -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", i.getId());
+            map.put("exchangeId", i.getExchangeId());
+            map.put("exchangeName", i.getExchangeId() != null ?
+                Optional.ofNullable(exchangeMapper.selectById(i.getExchangeId()))
+                    .map(Exchange::getName).orElse("未知") : "未知");
+            map.put("instrumentCode", i.getInstrumentCode());
+            map.put("name", i.getName());
+            map.put("type", i.getType() != null ? i.getType() : "STOCK");
+            map.put("status", i.getStatus());
+            map.put("currentPrice", i.getCurrentPrice());
+            map.put("createdAt", i.getCreatedAt());
+            return map;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void addInstrument(Long exchangeId, String instrumentCode, String name, String type) {
+        // 检查代码是否已存在
+        if (instrumentMapper.existsByInstrumentCode(instrumentCode)) {
+            throw BusinessException.of("品种代码已存在");
+        }
+
+        Instrument instrument = new Instrument();
+        instrument.setExchangeId(exchangeId);
+        instrument.setInstrumentCode(instrumentCode);
+        instrument.setName(name);
+        instrument.setType(type);
+        instrument.setStatus(1);
+        instrument.setCurrentPrice(BigDecimal.ZERO);
+        instrument.setPrevClosePrice(BigDecimal.ZERO);
+        instrument.setOpenPrice(BigDecimal.ZERO);
+        instrument.setHighPrice(BigDecimal.ZERO);
+        instrument.setLowPrice(BigDecimal.ZERO);
+        instrument.setChangePercent(BigDecimal.ZERO);
+        instrument.setChangeAmount(BigDecimal.ZERO);
+        instrument.setVolume(0L);
+        instrument.setTurnover(BigDecimal.ZERO);
+
+        instrumentMapper.insert(instrument);
+        log.info("添加品种：exchangeId={}, instrumentCode={}, name={}, type={}",
+            exchangeId, instrumentCode, name, type);
+    }
+
+    @Override
+    @Transactional
+    public void updateInstrument(Long instrumentId, Long exchangeId, String instrumentCode,
+                                  String name, String type) {
+        Instrument instrument = instrumentMapper.selectById(instrumentId);
+        if (instrument == null) {
+            throw BusinessException.of("品种不存在");
+        }
+
+        instrument.setExchangeId(exchangeId);
+        instrument.setInstrumentCode(instrumentCode);
+        instrument.setName(name);
+        instrument.setType(type);
+        instrumentMapper.updateById(instrument);
+
+        log.info("更新品种：id={}, exchangeId={}, instrumentCode={}, name={}, type={}",
+            instrumentId, exchangeId, instrumentCode, name, type);
+    }
+
+    @Override
+    @Transactional
+    public void updateInstrumentStatus(Long instrumentId, Integer status) {
+        Instrument instrument = instrumentMapper.selectById(instrumentId);
+        if (instrument == null) {
+            throw BusinessException.of("品种不存在");
+        }
+
+        instrument.setStatus(status);
+        instrumentMapper.updateById(instrument);
+
+        log.info("更新品种状态：id={}, status={}", instrumentId, status);
     }
 }

@@ -91,6 +91,12 @@ public class Instrument extends BaseEntity {
     private BigDecimal turnover;
 
     /**
+     * 品种类型：STOCK-股票，FUND-基金，BOND-债券
+     */
+    @TableField("type")
+    private String type = "STOCK";
+
+    /**
      * 状态：1-交易中 0-休市
      */
     @TableField("status")
