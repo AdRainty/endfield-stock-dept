@@ -95,9 +95,11 @@ const BasicLayout = () => {
           </span>
         </div>
         <div className="status-right">
-          <span className="user-display">
-            <UserOutlined /> {user.nickname || "USER"}
-          </span>
+          <Dropdown menu={dropdownMenu} trigger={["click"]} className="user-dropdown">
+            <span className="user-display">
+              <UserOutlined /> {user.nickname || "USER"}
+            </span>
+          </Dropdown>
           <span className="role-tag">{user.role === "ADMIN" ? "ADMIN" : "USER"}</span>
         </div>
       </Header>
