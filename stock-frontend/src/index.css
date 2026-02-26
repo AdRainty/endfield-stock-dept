@@ -1502,6 +1502,145 @@ body {
   text-transform: uppercase;
 }
 
+/* 行情中心 - 交易面板 */
+.trade-panel {
+  background: var(--color-bg-card);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  padding: 16px;
+}
+
+.trade-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.trade-tab {
+  padding: 10px 16px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.trade-tab:hover {
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+.trade-tab.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.trade-tab.active:nth-child(2) {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.trade-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trade-row {
+  display: grid;
+  grid-template-columns: 50px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.trade-label {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.trade-input-group {
+  display: flex;
+  gap: 6px;
+}
+
+.trade-input {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-mono);
+  transition: all var(--transition-fast);
+}
+
+.trade-input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
+}
+
+.price-quick-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.price-btn {
+  padding: 6px 10px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.price-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.trade-total {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.trade-unit {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-left: 4px;
+}
+
+.trade-submit {
+  margin-top: 8px;
+  height: 40px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: none !important;
+}
+
+.trade-submit.btn-buy {
+  background: var(--color-primary) !important;
+}
+
+.trade-submit.btn-sell {
+  background: var(--color-accent) !important;
+}
+
+.trade-submit:hover {
+  opacity: 0.9;
+}
+
 /* =====================
    交易委托页面样式
    ===================== */

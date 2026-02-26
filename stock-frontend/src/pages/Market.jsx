@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Select, Tag, Spin } from "antd";
-import { LineChartOutlined, CaretUpOutlined, CaretDownOutlined, DashboardOutlined } from "@ant-design/icons";
-import axios from "axios";
+import { Select, Tag, Spin, Input, Button, message } from "antd";
+import { LineChartOutlined, CaretUpOutlined, CaretDownOutlined, DashboardOutlined, ShoppingOutlined } from "@ant-design/icons";
+import request from "../services/request";
 import KlineChart from "../components/KlineChart";
 
 const { Option } = Select;
@@ -14,6 +14,12 @@ const Market = () => {
   const [orderBook, setOrderBook] = useState(null);
   const [loading, setLoading] = useState(false);
   const [flashState, setFlashState] = useState({});
+
+  // 交易相关状态
+  const [orderType, setOrderType] = useState("BUY"); // BUY / SELL
+  const [orderPrice, setOrderPrice] = useState("");
+  const [orderQuantity, setOrderQuantity] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const prevPricesRef = useRef({});
   const selectedInstrumentRef = useRef(null);
@@ -28,7 +34,7 @@ const Market = () => {
   // 获取交易所列表
   const getExchanges = async () => {
     try {
-      const res = await axios.get("/api/exchange/list");
+      const res = await request.get("/exchange/list");
       if (res.data.code === 0) {
         setExchanges(res.data.data);
         if (res.data.data.length > 0) {
@@ -81,7 +87,7 @@ const Market = () => {
     if (!selectedExchange) return;
     setLoading(true);
     try {
-      const res = await axios.get(`/api/exchange/${selectedExchange}/instruments`);
+      const res = await request.get(`/exchange/${selectedExchange}/instruments`);
       if (res.data.code === 0) {
         const newData = res.data.data;
         updateInstruments(newData);
@@ -101,12 +107,64 @@ const Market = () => {
   const getOrderBook = async () => {
     if (!selectedExchange || !selectedInstrument) return;
     try {
-      const res = await axios.get(`/api/market/orderbook/${selectedExchange}/${selectedInstrument}`);
+      const res = await request.get(`/market/orderbook/${selectedExchange}/${selectedInstrument}`);
       if (res.data.code === 0) {
         setOrderBook(res.data.data);
       }
     } catch (error) {
       console.error("获取档口失败", error);
+    }
+  };
+
+  // 提交订单
+  const handleSubmitOrder = async () => {
+    if (!selectedExchange || !selectedInstrument) {
+      message.warning("请先选择交易品种");
+      return;
+    }
+
+    if (!orderPrice || !orderQuantity) {
+      message.warning("请输入价格和数量");
+      return;
+    }
+
+    const price = parseFloat(orderPrice);
+    const quantity = parseFloat(orderQuantity);
+
+    if (price <= 0 || quantity <= 0) {
+      message.warning("价格和数量必须大于 0");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await request.post("/trade/order", {
+        exchangeId: selectedExchange,
+        instrumentCode: selectedInstrument,
+        orderType: orderType,
+        price: price,
+        quantity: quantity,
+      });
+
+      if (res.data.code === 0) {
+        message.success(`${orderType === "BUY" ? "买入" : "卖出"}委托成功`);
+        setOrderPrice("");
+        setOrderQuantity("");
+      }
+    } catch (error) {
+      console.error("下单失败", error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // 设置价格为买一/卖一
+  const setPriceFromOrderBook = (type) => {
+    if (!orderBook) return;
+    if (type === "buy" && orderBook.bids?.[0]?.price) {
+      setOrderPrice(orderBook.bids[0].price.toFixed(2));
+    } else if (type === "sell" && orderBook.asks?.[0]?.price) {
+      setOrderPrice(orderBook.asks[0].price.toFixed(2));
     }
   };
 
@@ -136,7 +194,7 @@ const Market = () => {
   useEffect(() => {
     if (selectedExchange) {
       const timer = setInterval(() => {
-        axios.get(`/api/exchange/${selectedExchange}/instruments`)
+        request.get(`/exchange/${selectedExchange}/instruments`)
           .then(res => {
             if (res.data.code === 0) {
               updateInstruments(res.data.data);
@@ -237,7 +295,7 @@ const Market = () => {
           )}
         </div>
 
-        {/* 右侧：委托档口 */}
+        {/* 右侧：委托档口 + 交易面板 */}
         <div className="orderbook-panel">
           <div className="panel-header">
             <span className="panel-title">
@@ -262,7 +320,7 @@ const Market = () => {
                       <span className={`price ask-price ${ask.price ? '' : 'empty'}`}>
                         {ask.price?.toFixed(2) || '-'}
                       </span>
-                      <span className={`qty ask-qty ${ask.quantity ? '' : 'empty'}`}>
+                      <span className={`qty bid-qty ${ask.quantity ? '' : 'empty'}`}>
                         {ask.quantity?.toFixed(0) || '-'}
                       </span>
                     </div>
@@ -301,6 +359,74 @@ const Market = () => {
               <p className="empty-subtext">SELECT AN INSTRUMENT</p>
             </div>
           )}
+
+          {/* 交易面板 */}
+          <div className="trade-panel">
+            <div className="trade-tabs">
+              <button
+                className={`trade-tab ${orderType === 'BUY' ? 'active' : ''}`}
+                onClick={() => setOrderType('BUY')}
+              >
+                买入 / BUY
+              </button>
+              <button
+                className={`trade-tab ${orderType === 'SELL' ? 'active' : ''}`}
+                onClick={() => setOrderType('SELL')}
+              >
+                卖出 / SELL
+              </button>
+            </div>
+
+            <div className="trade-form">
+              <div className="trade-row">
+                <span className="trade-label">价格</span>
+                <div className="trade-input-group">
+                  <Input
+                    type="number"
+                    className="trade-input"
+                    value={orderPrice}
+                    onChange={(e) => setOrderPrice(e.target.value)}
+                    placeholder="0.00"
+                    step="0.01"
+                  />
+                  <div className="price-quick-btns">
+                    <button onClick={() => setPriceFromOrderBook('sell')} className="price-btn">卖一</button>
+                    <button onClick={() => setPriceFromOrderBook('buy')} className="price-btn">买一</button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="trade-row">
+                <span className="trade-label">数量</span>
+                <Input
+                  type="number"
+                  className="trade-input"
+                  value={orderQuantity}
+                  onChange={(e) => setOrderQuantity(e.target.value)}
+                  placeholder="0"
+                  step="1"
+                />
+              </div>
+
+              <div className="trade-row">
+                <span className="trade-label">总额</span>
+                <span className="trade-total">
+                  {(parseFloat(orderPrice || 0) * parseFloat(orderQuantity || 0)).toFixed(2)}
+                  <span className="trade-unit">CNY</span>
+                </span>
+              </div>
+
+              <Button
+                type="primary"
+                className={`trade-submit ${orderType === 'BUY' ? 'btn-buy' : 'btn-sell'}`}
+                onClick={handleSubmitOrder}
+                loading={submitting}
+                icon={<ShoppingOutlined />}
+              >
+                {orderType === 'BUY' ? '买入委托' : '卖出委托'}
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
