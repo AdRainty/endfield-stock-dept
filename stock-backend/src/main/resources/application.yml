@@ -10,6 +10,15 @@ spring:
   profiles:
     active: dev
 
+  # Redis 配置
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 5000ms
+
   # Liquibase 配置
   liquibase:
     enabled: true

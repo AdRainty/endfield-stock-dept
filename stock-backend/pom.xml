@@ -23,6 +23,7 @@
         <sa-token.version>1.37.0</sa-token.version>
         <knife4j.version>4.4.0</knife4j.version>
         <fastjson.version>2.0.43</fastjson.version>
+        <redisson.version>3.24.3</redisson.version>
     </properties>
     
     <dependencies>
@@ -91,7 +92,21 @@
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
         </dependency>
-        
+
+        <!-- Redisson 分布式 Redis 客户端 -->
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson-spring-boot-starter</artifactId>
+            <version>${redisson.version}</version>
+        </dependency>
+
+        <!-- Sa-Token Redis 集成 -->
+        <dependency>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-dao-redis-jackson</artifactId>
+            <version>${sa-token.version}</version>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
