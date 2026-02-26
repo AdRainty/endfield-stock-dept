@@ -42,9 +42,11 @@ public class AuthController {
     @PostMapping("/wx-qrcode")
     public ResponseEntity<GlobalExceptionHandler.ApiResult<Map<String, String>>> getWxQrCode() {
         String scene = wechatUtil.generateQrCodeScene();
+        WechatUtil.WxQrCodeScene qrScene = wechatUtil.checkQrCodeStatus(scene);
         Map<String, String> result = new HashMap<>();
         result.put("scene", scene);
-        result.put("qrCodeBase64", wechatUtil.checkQrCodeStatus(scene).getQrCodeBase64());
+        result.put("qrCodeUrl", qrScene.getQrCodeUrl());
+        result.put("qrCodeBase64", qrScene.getQrCodeBase64());
         return ResponseEntity.ok(GlobalExceptionHandler.ApiResult.success(result));
     }
     
