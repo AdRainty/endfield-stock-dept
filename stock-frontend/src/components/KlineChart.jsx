@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, ComposedChart, Customized } from "recharts";
 import { CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
 
 /**
  * K 线图表组件
  * 支持分时、日 K、月 K、年 K
+ * 分时：线图；日 K/月 K/年 K：蜡烛图
  */
 const KlineChart = ({ exchangeId, instrumentCode }) => {
-  const [period, setPeriod] = useState("1d"); // 1m-分时 1d-日 K 1M-月 K 1Y-年 K
+  const [period, setPeriod] = useState("1m"); // 1m-分时 1d-日 K 1M-月 K 1Y-年 K
   const [klineData, setKlineData] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -18,6 +19,9 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
     { value: "1M", label: "月 K" },
     { value: "1Y", label: "年 K" },
   ];
+
+  // 判断是否为蜡烛图模式
+  const isCandlestick = period !== "1m";
 
   // 获取 K 线数据
   const fetchKline = async () => {
@@ -68,7 +72,7 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
 
     const high = Math.max(...klineData.map(d => parseFloat(d.high || 0)));
     const low = Math.min(...klineData.map(d => parseFloat(d.low || 0)));
-    const padding = (high - low) * 0.1;
+    const padding = (high - low) * 0.1 || 1;
 
     const lastClose = klineData[klineData.length - 1]?.close || 0;
     const firstOpen = klineData[0]?.open || 0;
@@ -84,34 +88,43 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
     };
   }, [klineData]);
 
-  // 自定义蜡烛图形状
-  const Candlestick = (props) => {
-    const { x, y, width, height, payload } = props;
-    const { open, close, high, low } = payload;
+  // 自定义蜡烛图渲染
+  const renderCandlestick = (props) => {
+    const { data, dataKey, xAxisMap, yAxisMap, width, height } = props;
+    if (!data || data.length === 0) return null;
 
-    if (!open || !close || !high || !low) return null;
+    const yAxis = yAxisMap[0];
+    const xAxis = xAxisMap[0];
+    const xStep = xAxis.width / data.length;
+    const candleWidth = xStep * 0.7;
 
-    const isRise = close >= open;
-    const color = isRise ? "#ff4d4f" : "#52c41a";
+    return data.map((entry, index) => {
+      const { open, close, high, low } = entry;
+      if (!open || !close || !high || !low) return null;
 
-    const yScale = height / (Math.max(...klineData.map(d => parseFloat(d.high || 0))) - Math.min(...klineData.map(d => parseFloat(d.low || 0))) || 1);
+      const isRise = close >= open;
+      const color = isRise ? "#ff4d4f" : "#52c41a";
 
-    const openY = y + (high - open) * yScale;
-    const closeY = y + (high - close) * yScale;
-    const highY = y + (high - high) * yScale;
-    const lowY = y + (high - low) * yScale;
+      const x = xAxis.x + index * xStep + (xStep - candleWidth) / 2;
+      const openY = yAxis.y + yAxis.height - yAxis.scale(open);
+      const closeY = yAxis.y + yAxis.height - yAxis.scale(close);
+      const highY = yAxis.y + yAxis.height - yAxis.scale(high);
+      const lowY = yAxis.y + yAxis.height - yAxis.scale(low);
 
-    const bodyTop = Math.min(openY, closeY);
-    const bodyHeight = Math.max(Math.abs(openY - closeY), 1);
+      const bodyTop = Math.min(openY, closeY);
+      const bodyHeight = Math.max(Math.abs(openY - closeY), 1);
 
-    return (
-      <g>
-        {/* 影线 */}
-        <line x1={x + width / 2} y1={highY} x2={x + width / 2} y2={lowY} stroke={color} strokeWidth={1} />
-        {/* 实体 */}
-        <rect x={x + width * 0.1} y={bodyTop} width={width * 0.8} height={bodyHeight} fill={color} />
-      </g>
-    );
+      return (
+        <g key={index}>
+          {/* 上影线 */}
+          <line x1={x + candleWidth / 2} y1={highY} x2={x + candleWidth / 2} y2={bodyTop} stroke={color} strokeWidth={1.5} />
+          {/* 下影线 */}
+          <line x1={x + candleWidth / 2} y1={bodyTop + bodyHeight} x2={x + candleWidth / 2} y2={lowY} stroke={color} strokeWidth={1.5} />
+          {/* 实体 */}
+          <rect x={x} y={bodyTop} width={candleWidth} height={bodyHeight} fill={color} stroke={color} />
+        </g>
+      );
+    });
   };
 
   return (
@@ -147,48 +160,84 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
           <div className="empty-state">暂无 K 线数据</div>
         ) : (
           <div className="kline-chart">
+            {/* 主图表 */}
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={klineData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                <XAxis
-                  dataKey="time"
-                  tickFormatter={(t) => formatTime(t, period)}
-                  stroke="#666"
-                  tick={{ fontSize: 12 }}
-                />
-                <YAxis
-                  domain={yAxisDomain}
-                  stroke="#666"
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(v) => v.toFixed(2)}
-                />
-                <Tooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const data = payload[0].payload;
-                      return (
-                        <div className="kline-tooltip">
-                          <div className="tooltip-row"><span>时间:</span> {data.time}</div>
-                          <div className="tooltip-row"><span>开盘:</span> {data.open?.toFixed(2)}</div>
-                          <div className="tooltip-row"><span>最高:</span> {data.high?.toFixed(2)}</div>
-                          <div className="tooltip-row"><span>最低:</span> {data.low?.toFixed(2)}</div>
-                          <div className="tooltip-row"><span>收盘:</span> {data.close?.toFixed(2)}</div>
-                          <div className="tooltip-row"><span>成交量:</span> {data.volume?.toLocaleString()}</div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="close"
-                  stroke="#1890ff"
-                  strokeWidth={1.5}
-                  dot={false}
-                  isAnimationActive={false}
-                />
-              </LineChart>
+              {isCandlestick ? (
+                <ComposedChart data={klineData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                  <XAxis
+                    dataKey="time"
+                    tickFormatter={(t) => formatTime(t, period)}
+                    stroke="#666"
+                    tick={{ fontSize: 12 }}
+                  />
+                  <YAxis
+                    domain={yAxisDomain}
+                    stroke="#666"
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(v) => v.toFixed(2)}
+                  />
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="kline-tooltip">
+                            <div className="tooltip-title">{formatTime(data.time, period)}</div>
+                            <div className="tooltip-row"><span>开盘:</span> <span className="tooltip-value">{data.open?.toFixed(2)}</span></div>
+                            <div className="tooltip-row"><span>最高:</span> <span className="tooltip-value">{data.high?.toFixed(2)}</span></div>
+                            <div className="tooltip-row"><span>最低:</span> <span className="tooltip-value">{data.low?.toFixed(2)}</span></div>
+                            <div className="tooltip-row"><span>收盘:</span> <span className="tooltip-value">{data.close?.toFixed(2)}</span></div>
+                            <div className="tooltip-row"><span>成交量:</span> <span className="tooltip-value">{data.volume?.toLocaleString()}</span></div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Customized component={renderCandlestick} />
+                </ComposedChart>
+              ) : (
+                <LineChart data={klineData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                  <XAxis
+                    dataKey="time"
+                    tickFormatter={(t) => formatTime(t, period)}
+                    stroke="#666"
+                    tick={{ fontSize: 12 }}
+                  />
+                  <YAxis
+                    domain={yAxisDomain}
+                    stroke="#666"
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(v) => v.toFixed(2)}
+                  />
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="kline-tooltip">
+                            <div className="tooltip-title">{formatTime(data.time, period)}</div>
+                            <div className="tooltip-row"><span>时间:</span> <span className="tooltip-value">{data.time}</span></div>
+                            <div className="tooltip-row"><span>价格:</span> <span className="tooltip-value">{data.close?.toFixed(2)}</span></div>
+                            <div className="tooltip-row"><span>成交量:</span> <span className="tooltip-value">{data.volume?.toLocaleString()}</span></div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="close"
+                    stroke="#1890ff"
+                    strokeWidth={1.5}
+                    dot={false}
+                    isAnimationActive={false}
+                  />
+                </LineChart>
+              )}
             </ResponsiveContainer>
 
             {/* 成交量图表 */}
@@ -197,7 +246,6 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#333" />
                 <XAxis dataKey="time" hide />
                 <YAxis hide />
-                <Tooltip />
                 <Bar dataKey="volume" fill="#1890ff" opacity={0.5}>
                   {klineData.map((entry, index) => (
                     <Cell
@@ -301,19 +349,32 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
           background: #161b22;
           border: 1px solid #30363d;
           border-radius: 4px;
-          padding: 8px 12px;
+          padding: 10px 14px;
           font-size: 12px;
+        }
+
+        .tooltip-title {
+          font-weight: 600;
+          color: #e6edf3;
+          margin-bottom: 8px;
+          padding-bottom: 6px;
+          border-bottom: 1px solid #30363d;
         }
 
         .tooltip-row {
           display: flex;
           justify-content: space-between;
           gap: 16px;
-          padding: 2px 0;
+          padding: 3px 0;
         }
 
         .tooltip-row span:first-child {
           color: #8b949e;
+        }
+
+        .tooltip-value {
+          color: #e6edf3;
+          font-weight: 500;
         }
       `}</style>
     </div>
