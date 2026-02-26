@@ -16,9 +16,9 @@ const Login = () => {
     try {
       const res = await axios.post("/api/auth/wx-qrcode");
       if (res.data.code === 0) {
-        const { scene: sceneStr, qrCodeBase64 } = res.data.data;
+        const { scene: sceneStr, qrCodeUrl } = res.data.data;
         setScene(sceneStr);
-        setQrCodeValue(qrCodeBase64);
+        setQrCodeValue(qrCodeUrl);
         pollQrStatus(sceneStr);
       }
     } catch (error) {
