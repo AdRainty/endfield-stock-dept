@@ -135,8 +135,18 @@ const Market = () => {
     const price = parseFloat(orderPrice);
     const quantity = parseFloat(orderQuantity);
 
-    if (price <= 0 || quantity <= 0) {
-      message.warning("价格和数量必须大于 0");
+    if (price <= 0) {
+      message.warning("价格必须大于 0");
+      return;
+    }
+
+    if (quantity <= 0) {
+      message.warning("数量必须大于 0");
+      return;
+    }
+
+    if (quantity % 10 !== 0) {
+      message.warning("委托数量必须是 10 的倍数");
       return;
     }
 
@@ -409,6 +419,7 @@ const Market = () => {
                     onChange={(e) => setOrderPrice(e.target.value)}
                     placeholder="0.00"
                     step="0.01"
+                    min="0.01"
                   />
                   <div className="price-quick-btns">
                     <button onClick={() => setPriceFromOrderBook('sell')} className="price-btn">卖一</button>
@@ -425,7 +436,8 @@ const Market = () => {
                   value={orderQuantity}
                   onChange={(e) => setOrderQuantity(e.target.value)}
                   placeholder="0"
-                  step="1"
+                  step="10"
+                  min="10"
                 />
               </div>
 
