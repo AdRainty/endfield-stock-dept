@@ -1029,7 +1029,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid rgba(255, 107, 53, 0.2);
 }
 
 .header-title {
@@ -1150,7 +1150,8 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  background: var(--color-bg-tertiary);
+  background: rgba(255, 107, 53, 0.05);
+  border-bottom: 1px solid rgba(255, 107, 53, 0.15);
   flex-shrink: 0;
 }
 
@@ -2299,8 +2300,8 @@ body {
 /* 持仓面板 */
 .position-panel {
   flex: 1;
-  background: var(--color-bg-card);
-  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 107, 53, 0.15);
   border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
@@ -2318,8 +2319,8 @@ body {
 }
 
 .position-table :global(.ant-table-thead > tr > th) {
-  background: var(--color-bg-tertiary);
-  color: var(--text-secondary);
+  background: rgba(255, 107, 53, 0.08);
+  color: var(--color-primary);
   font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 1px;
@@ -2328,16 +2329,16 @@ body {
 }
 
 .position-table :global(.ant-table-tbody > tr) {
-  background: var(--color-bg-secondary);
+  background: rgba(255, 255, 255, 0.02);
   transition: background var(--transition-fast);
 }
 
 .position-table :global(.ant-table-tbody > tr:hover) {
-  background: var(--color-bg-tertiary);
+  background: rgba(255, 107, 53, 0.05);
 }
 
 .position-table :global(.ant-table-tbody > tr > td) {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--text-secondary);
   font-family: var(--font-mono);
   font-size: 13px;
