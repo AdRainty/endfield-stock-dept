@@ -47,6 +47,16 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
     fetchKline();
   }, [exchangeId, instrumentCode, period]);
 
+  // 实时轮询更新（分时图每 3 秒更新，其他周期每 10 秒更新）
+  useEffect(() => {
+    if (!exchangeId || !instrumentCode) return;
+
+    const pollInterval = period === "1m" ? 3000 : 10000;
+    const timer = setInterval(fetchKline, pollInterval);
+
+    return () => clearInterval(timer);
+  }, [exchangeId, instrumentCode, period]);
+
   // 格式化时间显示
   const formatTime = (timeStr, periodType) => {
     const date = new Date(timeStr);
