@@ -49,6 +49,26 @@
 
 ## 快速开始
 
+### 数据库配置
+
+#### MySQL（生产环境）
+
+1. 创建数据库：
+```sql
+CREATE DATABASE endfield_stock DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+2. 执行初始化脚本：
+```bash
+# 执行表结构脚本
+mysql -u root -p endfield_stock < stock-backend/src/main/resources/db/schema.sql
+
+# 执行初始数据脚本
+mysql -u root -p endfield_stock < stock-backend/src/main/resources/db/data.sql
+```
+
+3. 修改配置文件 `application-prod.yml` 中的数据库连接信息
+
 ### 后端启动
 
 ```bash
@@ -95,6 +115,13 @@ endfield-stock-dept/
 │   │   ├── enums/           # 枚举
 │   │   ├── exception/       # 异常处理
 │   │   └── util/            # 工具类
+│   ├── src/main/resources/
+│   │   ├── db/
+│   │   │   ├── schema.sql   # 数据库表结构脚本
+│   │   │   └── data.sql     # 初始化数据脚本
+│   │   ├── application.yml
+│   │   ├── application-dev.yml
+│   │   └── application-prod.yml
 │   └── pom.xml
 ├── stock-frontend/          # React 前端
 │   ├── src/
@@ -103,7 +130,8 @@ endfield-stock-dept/
 │   │   ├── services/        # API 服务
 │   │   └── utils/           # 工具函数
 │   └── package.json
-└── task.md                  # 开发任务列表
+├── task.md                  # 开发任务列表
+└── README.md                # 项目文档
 ```
 
 ## API 接口
