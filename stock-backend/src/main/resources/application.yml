@@ -1,0 +1,96 @@
+# 终末地调度卷交易模拟系统 - 应用配置
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: endfield-stock-dept
+  
+  # 数据源配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/endfield_stock?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+  
+  # JPA 配置
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+  
+  # Redis 配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
+  
+  # Jackson 配置
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+
+# Sa-Token 配置
+sa-token:
+  # token 名称
+  token-name: Authorization
+  # token 有效期 (秒)，-1 表示永不过期
+  timeout: 2592000
+  # token 最低活跃频率 (秒)
+  active-timeout: -1
+  # 是否允许同一账号并发登录
+  is-concurrent: true
+  # 是否在登录后踢掉之前的登录
+  is-share: false
+  # token 风格 (uuid/simple-uuid)
+  token-style: uuid
+  # 是否输出操作日志
+  is-log: true
+  # 是否从 header 读取 token
+  is-read-header: true
+  # 是否从 cookie 读取 token
+  is-read-cookie: false
+
+# Knife4j 配置
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+    swagger-model-name: 实体类
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.adrainty.stock: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# 自定义配置
+app:
+  # 交易所配置
+  exchange:
+    # 四号谷底交易所
+    valley:
+      id: 1
+      name: 四号谷底
+      code: VALLEY
+    # 武陵交易所
+    wuling:
+      id: 2
+      name: 武陵
+      code: WULING
+  # 新用户初始资金
+  initial-capital: 100000
+  # 微信配置 (测试环境)
+  wechat:
+    app-id: ${WECHAT_APP_ID:}
+    app-secret: ${WECHAT_APP_SECRET:}
