@@ -116,6 +116,32 @@ public class AuthController {
     }
     
     /**
+     * 微信回调接口
+     * 微信开放平台会携带 code 和 state 参数回调此接口
+     */
+    @Operation(hidden = true)
+    @GetMapping("/wx-callback")
+    public String wxCallback(
+            @RequestParam String code,
+            @RequestParam String state) {
+        log.info("微信回调，code={}, state={}", code, state);
+
+        WechatUtil.WxQrCodeScene scene = wechatUtil.handleWxCallback(code, state);
+
+        if (scene != null) {
+            // 用户已扫码授权，前端轮询会检测到状态并登录
+            return "<html><head><title>微信授权成功</title></head><body>" +
+                   "<h1>微信授权成功</h1><p>请在电脑上继续操作</p>" +
+                   "<script>window.close()</script>" +
+                   "</body></html>";
+        }
+
+        return "<html><head><title>授权失败</title></head><body>" +
+               "<h1>授权失败</h1><p>请重新扫码</p>" +
+               "</body></html>";
+    }
+
+    /**
      * 退出登录
      */
     @Operation(summary = "退出登录", description = "登出当前用户")
