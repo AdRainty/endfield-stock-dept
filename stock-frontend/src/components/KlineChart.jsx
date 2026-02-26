@@ -161,7 +161,7 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
         ) : (
           <div className="kline-chart">
             {/* 主图表 */}
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={450}>
               {isCandlestick ? (
                 <ComposedChart data={klineData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#333" />
