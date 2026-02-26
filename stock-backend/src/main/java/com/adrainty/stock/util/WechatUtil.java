@@ -119,12 +119,28 @@ public class WechatUtil {
         try {
             log.info("微信回调，code={}, state={}", code, state);
 
-            // 使用 code 换取用户信息
-            WxMpUser user = wxMpService.getOauth2Service().getUserInfo(null, code);
-            String openid = user.getOpenId();
+            // 使用 code 换取 access_token 和 openid
+            String accessToken = wxMpService.getOauth2Service().getAccessToken(code);
+            String openid = wxMpService.getOauth2Service().getOpenId(accessToken);
 
             if (openid == null) {
                 log.error("获取 openid 失败");
+                return null;
+            }
+
+            // 使用 openid 获取用户完整信息（需要公众号已认证且用户已关注）
+            WxMpUser user = null;
+            try {
+                user = wxMpService.getUserService().userInfo(openid);
+                log.info("通过 openid 获取用户信息成功：{}", user.getNickname());
+            } catch (WxErrorException e) {
+                log.warn("通过 openid 获取用户信息失败（可能是临时二维码未关注用户），使用 OAuth2 方式获取：{}", e.getError().getErrorMsg());
+                // 降级：使用 OAuth2 方式获取用户信息
+                user = wxMpService.getOauth2Service().getUserInfo(accessToken, code);
+            }
+
+            if (user == null) {
+                log.error("获取用户信息失败");
                 return null;
             }
 
@@ -134,14 +150,14 @@ public class WechatUtil {
 
             if (scene != null) {
                 scene.setStatus("SUCCESS");
-                scene.setOpenid(openid);
+                scene.setOpenid(user.getOpenId());
                 scene.setNickname(user.getNickname());
                 scene.setAvatar(user.getHeadImgUrl());
 
                 // 延长过期时间，给用户登录的时间
                 redisTemplate.opsForValue().set(redisKey, scene, 10, TimeUnit.MINUTES);
 
-                log.info("微信扫码成功，openid={}, nickname={}", openid, scene.getNickname());
+                log.info("微信扫码成功，openid={}, nickname={}", user.getOpenId(), scene.getNickname());
                 return scene;
             }
 
@@ -160,8 +176,29 @@ public class WechatUtil {
      */
     public Map<String, String> getAccessTokenByCode(String code) {
         try {
+            // 使用 code 换取 access_token
             String accessToken = wxMpService.getOauth2Service().getAccessToken(code);
-            WxMpUser user = wxMpService.getOauth2Service().getUserInfo(accessToken, code);
+            String openid = wxMpService.getOauth2Service().getOpenId(accessToken);
+
+            if (openid == null) {
+                log.error("获取 openid 失败");
+                return new HashMap<>();
+            }
+
+            // 使用 openid 获取用户完整信息
+            WxMpUser user = null;
+            try {
+                user = wxMpService.getUserService().userInfo(openid);
+                log.info("通过 openid 获取用户信息成功：{}", user.getNickname());
+            } catch (WxErrorException e) {
+                log.warn("通过 openid 获取用户信息失败，使用 OAuth2 方式：{}", e.getError().getErrorMsg());
+                // 降级：使用 OAuth2 方式获取用户信息
+                user = wxMpService.getOauth2Service().getUserInfo(accessToken, code);
+            }
+
+            if (user == null) {
+                return new HashMap<>();
+            }
 
             Map<String, String> result = new HashMap<>();
             result.put("access_token", accessToken);
