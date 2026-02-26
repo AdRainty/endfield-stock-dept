@@ -40,6 +40,14 @@ request.interceptors.response.use(
   },
   (error) => {
     console.error("请求错误:", error);
+    // 处理 Sa-Token 的 401 响应
+    if (error.response?.status === 401) {
+      message.error("未登录或登录已过期");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+      return Promise.reject(error);
+    }
     message.error(error.message || "网络错误");
     return Promise.reject(error);
   }
