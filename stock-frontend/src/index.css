@@ -2838,49 +2838,76 @@ body {
   background: var(--color-primary);
 }
 
-/* Modal 样式覆盖 */
-:global(.ant-modal-content) {
-  background: var(--color-bg-card);
-}
+/* =====================
+   Ant Design 组件样式覆盖
+   ===================== */
 
-:global(.ant-modal-header) {
-  background: var(--color-bg-tertiary);
-  border-bottom: 1px solid var(--border-color);
-}
-
-:global(.ant-modal-title) {
-  color: var(--text-primary);
-}
-
-:global(.ant-modal-close) {
-  color: var(--text-secondary);
-}
-
-/* Table 样式覆盖 */
+/* Table 样式覆盖 - 全局深色主题 */
 :global(.ant-table) {
-  color: var(--text-secondary);
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+}
+
+:global(.ant-table table) {
+  background: transparent !important;
 }
 
 :global(.ant-table-thead > tr > th) {
-  color: var(--text-secondary);
+  background: var(--color-bg-tertiary) !important;
+  color: var(--text-secondary) !important;
   font-family: var(--font-mono);
+  border-bottom: 1px solid var(--border-color) !important;
 }
 
 :global(.ant-table-tbody > tr > td) {
-  color: var(--text-secondary);
+  background: var(--color-bg-secondary) !important;
+  color: var(--text-secondary) !important;
   font-family: var(--font-mono);
-}
-
-:global(.ant-table-thead > tr) {
-  background: var(--color-bg-tertiary);
-}
-
-:global(.ant-table-tbody > tr) {
-  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--border-color) !important;
 }
 
 :global(.ant-table-tbody > tr:hover) {
-  background: var(--color-bg-tertiary);
+  background: var(--color-bg-tertiary) !important;
+}
+
+:global(.ant-table-container) {
+  background: transparent !important;
+}
+
+:global(.ant-table-cell) {
+  background: transparent !important;
+}
+
+:global(.ant-table-thead > tr:hover) {
+  background: var(--color-bg-tertiary) !important;
+}
+
+/* Input 样式覆盖 */
+:global(.ant-input),
+:global(.ant-input-number),
+:global(.ant-input-number-input) {
+  background: var(--color-bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font-mono) !important;
+}
+
+:global(.ant-input:hover),
+:global(.ant-input-number:hover) {
+  background: var(--color-bg-secondary) !important;
+  border-color: var(--border-light) !important;
+}
+
+:global(.ant-input:focus),
+:global(.ant-input-number:focus) {
+  background: var(--color-bg-secondary) !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2) !important;
+}
+
+:global(.ant-input::placeholder),
+:global(.ant-input-number::placeholder) {
+  color: var(--text-tertiary) !important;
 }
 
 /* Select 样式覆盖 */
@@ -2891,30 +2918,41 @@ body {
   font-family: var(--font-mono) !important;
 }
 
+:global(.ant-select:hover .ant-select-selector) {
+  border-color: var(--border-light) !important;
+}
+
+:global(.ant-select-focused .ant-select-selector) {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2) !important;
+}
+
 :global(.ant-select-selection-item) {
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
+  font-family: var(--font-mono) !important;
 }
 
 :global(.ant-select-arrow) {
-  color: var(--text-secondary);
+  color: var(--text-secondary) !important;
 }
 
 :global(.ant-select-dropdown) {
-  background: var(--color-bg-card);
-  border: 1px solid var(--border-color);
+  background: var(--color-bg-card) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
 :global(.ant-select-item) {
-  color: var(--text-secondary);
+  color: var(--text-secondary) !important;
+  font-family: var(--font-mono) !important;
 }
 
 :global(.ant-select-item:hover) {
-  background: var(--color-bg-tertiary);
+  background: var(--color-bg-tertiary) !important;
 }
 
 :global(.ant-select-item-option-selected) {
-  color: var(--color-primary);
-  background: rgba(255, 107, 53, 0.08);
+  color: var(--color-primary) !important;
+  background: rgba(255, 107, 53, 0.08) !important;
 }
 
 /* Input 样式覆盖 */
