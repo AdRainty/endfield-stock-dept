@@ -1,4 +1,4 @@
-# 终末地调度卷交易模拟系统 - 应用配置
+# 终末地调度券交易模拟系统 - 应用配置
 server:
   port: 8081
   servlet:
@@ -7,29 +7,23 @@ server:
 spring:
   application:
     name: endfield-stock-dept
-  
-  # 数据源配置
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/endfield?currentSchema=public
-    username: endfield
-    password: endfield
+  profiles:
+    active: dev
 
-  # MyBatis Plus 配置
+  # Jackson 配置
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+
+# MyBatis Plus 配置
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
   type-aliases-package: com.adrainty.stock.entity
   configuration:
     map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
       id-type: auto
-  
-  # Jackson 配置
-  jackson:
-    time-zone: Asia/Shanghai
-    date-format: yyyy-MM-dd HH:mm:ss
 
 # Sa-Token 配置
 sa-token:
@@ -61,9 +55,6 @@ knife4j:
 
 # 日志配置
 logging:
-  level:
-    root: INFO
-    com.adrainty.stock: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
@@ -83,7 +74,7 @@ app:
       code: WULING
   # 新用户初始资金
   initial-capital: 100000
-  # 微信配置 (测试环境)
+  # 微信配置
   wechat:
     app-id: ${WECHAT_APP_ID:}
     app-secret: ${WECHAT_APP_SECRET:}
