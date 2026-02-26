@@ -14,6 +14,7 @@ const Market = () => {
   const [orderBook, setOrderBook] = useState(null);
   const [loading, setLoading] = useState(false);
   const [flashState, setFlashState] = useState({});
+  const [account, setAccount] = useState(null);
 
   // 交易相关状态
   const [orderType, setOrderType] = useState("BUY"); // BUY / SELL
@@ -106,6 +107,19 @@ const Market = () => {
     }
   };
 
+  // 获取可用资金
+  const getAccount = async () => {
+    if (!selectedExchange) return;
+    try {
+      const res = await axios.get(`/api/trade/account/${selectedExchange}`);
+      if (res.data.code === 0) {
+        setAccount(res.data.data);
+      }
+    } catch (error) {
+      console.error("获取资金账户失败", error);
+    }
+  };
+
   // 提交订单
   const handleSubmitOrder = async () => {
     if (!selectedExchange || !selectedInstrument) {
@@ -175,6 +189,7 @@ const Market = () => {
   useEffect(() => {
     if (selectedExchange) {
       getInstruments();
+      getAccount(); // 获取可用资金
       prevPricesRef.current = {}; // 重置价格引用
     }
   }, [selectedExchange]);
@@ -414,12 +429,17 @@ const Market = () => {
                 />
               </div>
 
-              <div className="trade-row">
+              <div className="trade-row trade-row-with-tag">
                 <span className="trade-label">总额</span>
                 <span className="trade-total">
                   {(parseFloat(orderPrice || 0) * parseFloat(orderQuantity || 0)).toFixed(2)}
                   <span className="trade-unit">CNY</span>
                 </span>
+                {account && (
+                  <Tag className="available-fund-tag">
+                    可用资金 {account.available?.toFixed(2)}
+                  </Tag>
+                )}
               </div>
 
               <Button

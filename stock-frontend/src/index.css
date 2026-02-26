@@ -1580,6 +1580,30 @@ body {
   align-items: center;
 }
 
+.trade-row-with-tag {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trade-row-with-tag .trade-total {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.available-fund-tag {
+  background: rgba(255, 107, 53, 0.15) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
+  font-family: var(--font-mono);
+  font-size: 11px !important;
+  padding: 2px 8px !important;
+  border-radius: var(--radius-sm) !important;
+  font-weight: 600;
+}
+
 .trade-label {
   font-size: 11px;
   color: var(--text-tertiary);

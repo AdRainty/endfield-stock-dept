@@ -29,11 +29,6 @@ const BasicLayout = () => {
       label: <span>行情中心 <span className="menu-sub">MARKET</span></span>,
     },
     {
-      key: "/trade",
-      icon: <ShopOutlined />,
-      label: <span>交易委托 <span className="menu-sub">TRADE</span></span>,
-    },
-    {
       key: "/position",
       icon: <WalletOutlined />,
       label: <span>持仓查询 <span className="menu-sub">POSITION</span></span>,
