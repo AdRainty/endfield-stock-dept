@@ -22,9 +22,10 @@ const Login = () => {
     try {
       const res = await axios.post("/api/auth/wx-qrcode");
       if (res.data.code === 0) {
-        setScene(res.data.data.scene);
-        setQrCodeValue(res.data.data.qrCodeBase64);
-        pollQrStatus(res.data.data.scene);
+        const { scene: sceneStr, qrCodeBase64 } = res.data.data;
+        setScene(sceneStr);
+        setQrCodeValue(qrCodeBase64);
+        pollQrStatus(sceneStr);
       }
     } catch (error) {
       console.error("获取二维码失败", error);
@@ -147,10 +148,10 @@ const Login = () => {
                 children: (
                   <div className="tab-content qrcode-tab">
                     <div className="qrcode-wrapper">
-                      {scene ? (
+                      {qrCodeValue ? (
                         <>
                           <div className="qrcode-frame">
-                            <QRCode value={scene} size={180} bgColor="#ffffff" fgColor="#000000" />
+                            <QRCode value={qrCodeValue} size={180} bgColor="#ffffff" fgColor="#000000" />
                             <div className="qrcode-overlay"></div>
                           </div>
                           <div className="scan-line"></div>
