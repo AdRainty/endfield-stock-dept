@@ -2,7 +2,6 @@ package com.adrainty.stock;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * 终末地调度卷交易模拟系统 - 主启动类
@@ -11,7 +10,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * @since 2026-02-26
  */
 @SpringBootApplication
-@EnableScheduling
 public class StockApplication {
 
     public static void main(String[] args) {
