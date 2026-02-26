@@ -2,6 +2,7 @@ package com.adrainty.stock.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
+import com.adrainty.stock.dto.AllocateRequest;
 import com.adrainty.stock.exception.GlobalExceptionHandler;
 import com.adrainty.stock.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,12 +36,10 @@ public class AdminController {
     @PostMapping("/allocate")
     @SaCheckRole("ADMIN")
     public ResponseEntity<GlobalExceptionHandler.ApiResult<String>> allocate(
-            @RequestParam Long targetUserId,
-            @RequestParam Long exchangeId,
-            @RequestParam BigDecimal amount,
-            @RequestParam(required = false, defaultValue = "管理员分配") String reason) {
+            @RequestBody AllocateRequest request) {
         Long adminUserId = StpUtil.getLoginIdAsLong();
-        adminService.allocateCapital(adminUserId, targetUserId, exchangeId, amount, reason);
+        adminService.allocateCapital(adminUserId, request.getTargetUserId(), request.getExchangeId(),
+                request.getAmount(), request.getReason());
         return ResponseEntity.ok(GlobalExceptionHandler.ApiResult.success("分配成功"));
     }
 
