@@ -64,11 +64,10 @@ public class EventWechatMsgHandler implements IWechatMsgHandler {
         String event = wxMessage.getEvent();
         if (WxConsts.EventType.SCAN.equals(event)) {
             String eventKey = wxMessage.getEventKey();
-            String ticket = wxMessage.getTicket();
             String openId = wxMessage.getFromUser();
 
-            log.info("用户扫码登录，eventKey: {}, ticket: {}, openId: {}", eventKey, ticket, openId);
-            handleQrCodeLogin(ticket, openId);
+            log.info("用户扫码登录，eventKey: {}, openId: {}", eventKey, openId);
+            handleQrCodeLogin(eventKey, openId);
         }
 
         return WxMpXmlOutMessage.TEXT()
@@ -81,12 +80,12 @@ public class EventWechatMsgHandler implements IWechatMsgHandler {
     /**
      * 处理二维码扫码登录
      */
-    public void handleQrCodeLogin(String ticket, String openId) {
+    public void handleQrCodeLogin(String scene, String openId) {
         // 通过 sceneId 查找对应的 scene 字符串
-        String redisKey = REDIS_QR_PREFIX + ticket;
+        String redisKey = REDIS_QR_PREFIX + scene;
         WechatUtil.WxQrCodeScene qrScene = (WechatUtil.WxQrCodeScene) redisTemplate.opsForValue().get(redisKey);
         if (qrScene == null) {
-            log.warn("二维码场景不存在或已过期：scene={}", ticket);
+            log.warn("二维码场景不存在或已过期：scene={}", scene);
             return;
         }
 
@@ -121,8 +120,8 @@ public class EventWechatMsgHandler implements IWechatMsgHandler {
         // 延长过期时间，给用户登录的时间
         redisTemplate.opsForValue().set(redisKey, qrScene, 10, TimeUnit.MINUTES);
 
-        log.info("微信扫码成功，ticket={}, openid={}, nickname={}, newUser={}",
-                ticket, openId, user.getNickname(), newUser);
+        log.info("微信扫码成功，scene={}, openid={}, nickname={}, newUser={}",
+                scene, openId, user.getNickname(), newUser);
     }
 
     /**

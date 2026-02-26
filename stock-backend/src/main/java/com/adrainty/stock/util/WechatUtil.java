@@ -74,7 +74,7 @@ public class WechatUtil {
             // 使用 WxJava 生成临时二维码 ticket
             WxMpQrCodeTicket qrCodeTicket = qrcodeService.qrCodeCreateTmpTicket(sceneStr, (int) QR_EXPIRE_MINUTES * 60);
             String ticket = qrCodeTicket.getTicket();
-            String redisKey = REDIS_QR_PREFIX + ticket;
+            String redisKey = REDIS_QR_PREFIX + sceneStr;
 
             // 获取二维码图片 URL（这是微信官方的二维码图片）
             String pictureUrl = qrcodeService.qrCodePictureUrl(ticket);
@@ -197,11 +197,6 @@ public class WechatUtil {
          * 二维码 URL（微信 OAuth2.0 授权链接）
          */
         private String qrCodeUrl;
-
-        /**
-         * 二维码图片 base64（可选）
-         */
-        private String qrCodeBase64;
 
         /**
          * 状态：WAIT-等待扫码 SUCCESS-已授权 EXPIRED-已过期

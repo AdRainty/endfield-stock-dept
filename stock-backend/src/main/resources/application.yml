@@ -58,7 +58,7 @@ sa-token:
   # 是否从 header 读取 token
   is-read-header: true
   # 是否从 cookie 读取 token
-  is-read-cookie: false
+  is-read-cookie: true
 
 # Knife4j 配置
 knife4j:

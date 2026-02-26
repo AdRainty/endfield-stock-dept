@@ -32,14 +32,13 @@ logging:
     com.adrainty.stock: INFO
     liquibase: WARN
 
-app:
-  # 新用户初始资金
-  initial-capital: 0
-  # 微信配置
-  wechat:
-    app-id: ${WECHAT_APP_ID:}
-    app-secret: ${WECHAT_APP_SECRET:}
-    redirect-uri: ${WECHAT_REDIRECT_URI:http://localhost:8081/api/auth/wx-callback}
+# 微信公众号配置（用于扫码登录）
+wechat:
+  mp:
+    app-id: ${WECHAT_MP_APP_ID:}
+    app-secret: ${WECHAT_MP_APP_SECRET:}
+    token: ${WECHAT_MP_TOKEN:}
+    aes-key: ${WECHAT_MP_AES_KEY:}
 
 # 生产环境关闭日志
 sa-token:

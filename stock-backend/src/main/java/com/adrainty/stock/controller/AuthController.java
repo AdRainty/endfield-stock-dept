@@ -38,12 +38,11 @@ public class AuthController {
     @Operation(summary = "获取微信二维码", description = "生成微信登录二维码场景")
     @PostMapping("/wx-qrcode")
     public ResponseEntity<GlobalExceptionHandler.ApiResult<Map<String, String>>> getWxQrCode() {
-        String scene = wechatUtil.generateQrCodeScene();
-        WechatUtil.WxQrCodeScene qrScene = wechatUtil.checkQrCodeStatus(scene);
+        String sceneStr = wechatUtil.generateQrCodeScene();
+        WechatUtil.WxQrCodeScene qrScene = wechatUtil.checkQrCodeStatus(sceneStr);
         Map<String, String> result = new HashMap<>();
-        result.put("scene", scene);
+        result.put("scene", sceneStr);
         result.put("qrCodeUrl", qrScene.getQrCodeUrl());
-        result.put("qrCodeBase64", qrScene.getQrCodeBase64());
         return ResponseEntity.ok(GlobalExceptionHandler.ApiResult.success(result));
     }
 
