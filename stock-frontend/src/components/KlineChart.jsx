@@ -239,23 +239,6 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
                 </LineChart>
               )}
             </ResponsiveContainer>
-
-            {/* 成交量图表 */}
-            <ResponsiveContainer width="100%" height={80}>
-              <BarChart data={klineData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                <XAxis dataKey="time" hide />
-                <YAxis hide />
-                <Bar dataKey="volume" fill="#1890ff" opacity={0.5}>
-                  {klineData.map((entry, index) => (
-                    <Cell
-                      key={index}
-                      fill={entry.close >= entry.open ? "#ff4d4f" : "#52c41a"}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
           </div>
         )}
       </div>
