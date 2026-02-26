@@ -1,10 +1,10 @@
 databaseChangeLog:
   - include:
-      file: db/changelog/1.0.0-initial-schema.yaml
+      file: 1.0.0-initial-schema.yaml
       relativeToChangelogFile: true
   - include:
-      file: db/changelog/1.0.1-indexes.yaml
+      file: 1.0.1-indexes.yaml
       relativeToChangelogFile: true
   - include:
-      file: db/changelog/1.0.2-initial-data.yaml
+      file: 1.0.2-initial-data.yaml
       relativeToChangelogFile: true
