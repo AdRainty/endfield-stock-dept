@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Select, Table, Tag, Card } from "antd";
 import { WalletOutlined, CaretUpOutlined, CaretDownOutlined, DashboardOutlined } from "@ant-design/icons";
-import axios from "axios";
+import request from "../services/request";
 
 const { Option } = Select;
 
@@ -14,7 +14,7 @@ const Position = () => {
 
   const getExchanges = async () => {
     try {
-      const res = await axios.get("/api/exchange/list");
+      const res = await request.get("/exchange/list");
       if (res.data.code === 0) {
         setExchanges(res.data.data);
         if (res.data.data.length > 0) {
@@ -30,7 +30,7 @@ const Position = () => {
     if (!selectedExchange) return;
     setLoading(true);
     try {
-      const res = await axios.get(`/api/trade/position/${selectedExchange}`);
+      const res = await request.get(`/trade/position/${selectedExchange}`);
       if (res.data.code === 0) {
         setPositions(res.data.data);
       }
@@ -44,7 +44,7 @@ const Position = () => {
   const getAccount = async () => {
     if (!selectedExchange) return;
     try {
-      const res = await axios.get(`/api/trade/account/${selectedExchange}`);
+      const res = await request.get(`/trade/account/${selectedExchange}`);
       if (res.data.code === 0) {
         setAccount(res.data.data);
       }
