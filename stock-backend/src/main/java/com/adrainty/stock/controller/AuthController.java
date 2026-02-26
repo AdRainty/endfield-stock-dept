@@ -7,7 +7,6 @@ import com.adrainty.stock.entity.User;
 import com.adrainty.stock.exception.GlobalExceptionHandler;
 import com.adrainty.stock.service.UserService;
 import com.adrainty.stock.util.WechatUtil;
-import com.alibaba.fastjson2.JSONObject;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -96,28 +95,22 @@ public class AuthController {
             @RequestBody LoginRequest request,
             HttpServletRequest httpRequest) {
         try {
-            // 根据 code 获取 access_token 和 openid
+            // 根据 code 获取 access_token 和用户信息
             String code = request.getCode();
-            Map<String, String> tokenInfo = wechatUtil.getAccessTokenByCode(code);
-            String openid = tokenInfo.get("openid");
-            String accessToken = tokenInfo.get("access_token");
+            Map<String, String> userInfo = wechatUtil.getAccessTokenByCode(code);
+            String openid = userInfo.get("openid");
 
-            if (openid == null || accessToken == null) {
+            if (openid == null) {
                 return ResponseEntity.badRequest().body(
                     GlobalExceptionHandler.ApiResult.error(400, "微信授权失败，请重试"));
             }
-
-            // 获取用户信息
-            JSONObject userInfo = wechatUtil.getUserInfo(accessToken, openid);
-            String nickname = userInfo.getString("nickname");
-            String avatar = userInfo.getString("headimgurl");
 
             // 登录/注册
             String clientIp = httpRequest.getRemoteAddr();
             LoginResponse loginResponse = userService.wxLogin(
                 openid,
-                nickname,
-                avatar,
+                userInfo.get("nickname"),
+                userInfo.get("avatar"),
                 clientIp
             );
 

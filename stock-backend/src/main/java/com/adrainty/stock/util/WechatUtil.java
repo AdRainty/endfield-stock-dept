@@ -1,32 +1,22 @@
 package com.adrainty.stock.util;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
+import com.adrainty.stock.config.WechatMpProperties;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.springframework.beans.factory.annotation.Value;
+import me.chanjar.weixin.common.error.WxErrorException;
+import me.chanjar.weixin.mp.api.WxMpService;
+import me.chanjar.weixin.mp.bean.result.WxMpQrCodeTicket;
+import me.chanjar.weixin.mp.bean.result.WxMpUser;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 微信工具类（真实调用微信 API）
- *
- * 微信开放平台文档：
- * - 网站应用微信登录：https://developers.weixin.qq.com/doc/oplatform/Website_App/WeChat_Login/Wechat_Login.html
- * - 获取 access_token：https://developers.weixin.qq.com/doc/oplatform/Third-party_Platforms/Official_Accounts/Third_party_authorization_process.html
+ * 微信工具类（基于 WxJava SDK）
  *
  * @author adrainty
  * @since 2026-02-26
@@ -35,61 +25,61 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class WechatUtil {
 
-    @Value("${app.wechat.app-id:}")
-    private String appId;
-
-    @Value("${app.wechat.app-secret:}")
-    private String appSecret;
-
-    @Value("${app.wechat.redirect-uri:http://localhost:8081/api/auth/wx-callback}")
-    private String redirectUri;
-
+    private final WxMpService wxMpService;
+    private final WechatMpProperties properties;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public WechatUtil(RedisTemplate<String, Object> redisTemplate) {
+    public WechatUtil(WxMpService wxMpService, WechatMpProperties properties, RedisTemplate<String, Object> redisTemplate) {
+        this.wxMpService = wxMpService;
+        this.properties = properties;
         this.redisTemplate = redisTemplate;
     }
 
-    private static final String WX_OAUTH2_URL = "https://open.weixin.qq.com/connect/qrconnect";
-    private static final String WX_ACCESS_TOKEN_URL = "https://api.weixin.qq.com/sns/oauth2/access_token";
-    private static final String WX_USER_INFO_URL = "https://api.weixin.qq.com/sns/userinfo";
-
     private static final String REDIS_QR_PREFIX = "wx:qrcode:";
     private static final long QR_EXPIRE_MINUTES = 5;
+    private static final long CODE_EXPIRE_MINUTES = 10;
 
     /**
-     * 生成微信二维码登录场景
+     * 生成微信二维码登录场景（临时二维码）
      *
      * @return 场景字符串
      */
     public String generateQrCodeScene() {
-        String sceneStr = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-        String redisKey = REDIS_QR_PREFIX + sceneStr;
+        try {
+            // 生成临时二维码 scene_id
+            String sceneStr = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+            int sceneId = Math.abs(sceneStr.hashCode());
+            String redisKey = REDIS_QR_PREFIX + sceneStr;
 
-        // 生成微信 OAuth2.0 二维码 URL
-        String encodedRedirectUri = encodeURIComponent(redirectUri);
-        String qrCodeUrl = String.format(
-            "%s?appid=%s&redirect_uri=%s&response_type=code&scope=snsapi_login&state=%s",
-            WX_OAUTH2_URL,
-            appId,
-            encodedRedirectUri,
-            sceneStr
-        );
+            // 使用 WxJava 生成临时二维码
+            WxMpQrCodeTicket ticket = wxMpService.getQrcodeService().qrCodeCreateTmpTicket(sceneId, (int) QR_EXPIRE_MINUTES * 60);
 
-        log.info("生成微信二维码 URL: {}", qrCodeUrl);
+            // 生成微信授权 URL（用于前端 QRCode 组件）
+            String authorizeUrl = wxMpService.oauth2buildAuthorizationUrl(
+                properties.getRedirectUri(),
+                "snsapi_userinfo",
+                sceneStr
+            );
 
-        // 存储场景信息到 Redis
-        WxQrCodeScene scene = new WxQrCodeScene();
-        scene.setScene(sceneStr);
-        scene.setQrCodeUrl(qrCodeUrl);
-        scene.setQrCodeBase64("");  // 前端使用 QRCode 组件自己生成，不需要后端返回 base64
-        scene.setStatus("WAIT");
-        scene.setExpireTime(System.currentTimeMillis() + QR_EXPIRE_MINUTES * 60 * 1000);
+            log.info("生成微信二维码，sceneId={}, ticket={}, url={}", sceneId, ticket.getTicket(), authorizeUrl);
 
-        redisTemplate.opsForValue().set(redisKey, scene, QR_EXPIRE_MINUTES, TimeUnit.MINUTES);
+            // 存储场景信息到 Redis
+            WxQrCodeScene scene = new WxQrCodeScene();
+            scene.setScene(sceneStr);
+            scene.setSceneId(sceneId);
+            scene.setTicket(ticket.getTicket());
+            scene.setQrCodeUrl(authorizeUrl);
+            scene.setStatus("WAIT");
+            scene.setExpireTime(System.currentTimeMillis() + QR_EXPIRE_MINUTES * 60 * 1000);
 
-        log.info("生成微信二维码场景：{}, 过期时间：{} 分钟", sceneStr, QR_EXPIRE_MINUTES);
-        return sceneStr;
+            redisTemplate.opsForValue().set(redisKey, scene, QR_EXPIRE_MINUTES, TimeUnit.MINUTES);
+
+            log.info("生成微信二维码场景：{}, 过期时间：{} 分钟", sceneStr, QR_EXPIRE_MINUTES);
+            return sceneStr;
+        } catch (WxErrorException e) {
+            log.error("生成微信二维码失败：{}", e.getError().getErrorMsg(), e);
+            throw new RuntimeException("生成微信二维码失败：" + e.getError().getErrorMsg(), e);
+        }
     }
 
     /**
@@ -129,28 +119,24 @@ public class WechatUtil {
         try {
             log.info("微信回调，code={}, state={}", code, state);
 
-            // 使用 code 换取 access_token 和 openid
-            Map<String, String> tokenInfo = getAccessTokenByCode(code);
-            String accessToken = tokenInfo.get("access_token");
-            String openid = tokenInfo.get("openid");
+            // 使用 code 换取用户信息
+            WxMpUser user = wxMpService.getOauth2Service().getUserInfo(null, code);
+            String openid = user.getOpenId();
 
             if (openid == null) {
-                log.error("获取 openid 失败：{}", tokenInfo.get("errmsg"));
+                log.error("获取 openid 失败");
                 return null;
             }
 
-            // 获取用户信息
-            JSONObject userInfo = getUserInfo(accessToken, openid);
-
-            // 更新 Redis 中的场景状态
+            // 查询场景信息
             String redisKey = REDIS_QR_PREFIX + state;
             WxQrCodeScene scene = (WxQrCodeScene) redisTemplate.opsForValue().get(redisKey);
 
             if (scene != null) {
                 scene.setStatus("SUCCESS");
                 scene.setOpenid(openid);
-                scene.setNickname(userInfo.getString("nickname"));
-                scene.setAvatar(userInfo.getString("headimgurl"));
+                scene.setNickname(user.getNickname());
+                scene.setAvatar(user.getHeadImgUrl());
 
                 // 延长过期时间，给用户登录的时间
                 redisTemplate.opsForValue().set(redisKey, scene, 10, TimeUnit.MINUTES);
@@ -160,129 +146,34 @@ public class WechatUtil {
             }
 
             return null;
-        } catch (Exception e) {
-            log.error("处理微信回调失败", e);
+        } catch (WxErrorException e) {
+            log.error("处理微信回调失败：{}", e.getError().getErrorMsg(), e);
             return null;
         }
     }
 
     /**
-     * 使用 code 换取 access_token 和 openid（公开方法，供外部调用）
+     * 使用 code 换取 access_token 和 openid（供备用登录接口使用）
      *
      * @param code 微信授权码
      * @return access_token 和 openid
      */
     public Map<String, String> getAccessTokenByCode(String code) {
-        String url = String.format(
-            "%s?appid=%s&secret=%s&code=%s&grant_type=authorization_code",
-            WX_ACCESS_TOKEN_URL,
-            appId,
-            appSecret,
-            code
-        );
-
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpGet httpGet = new HttpGet(url);
-            String response = httpClient.execute(httpGet, res -> {
-                if (res.getCode() == 200) {
-                    return EntityUtils.toString(res.getEntity(), StandardCharsets.UTF_8);
-                }
-                return null;
-            });
-
-            if (response != null) {
-                JSONObject json = JSON.parseObject(response);
-                Map<String, String> result = new HashMap<>();
-                result.put("access_token", json.getString("access_token"));
-                result.put("openid", json.getString("openid"));
-                result.put("refresh_token", json.getString("refresh_token"));
-                log.info("获取 access_token 成功，openid={}", json.getString("openid"));
-                return result;
-            }
-        } catch (Exception e) {
-            log.error("获取 access_token 失败", e);
-        }
-
-        return new HashMap<>();
-    }
-
-    /**
-     * 获取用户信息（公开方法，供外部调用）
-     *
-     * @param accessToken access_token
-     * @param openid 用户 openid
-     * @return 用户信息 JSON
-     */
-    public JSONObject getUserInfo(String accessToken, String openid) {
-        String url = String.format(
-            "%s?access_token=%s&openid=%s&lang=zh_CN",
-            WX_USER_INFO_URL,
-            accessToken,
-            openid
-        );
-
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpGet httpGet = new HttpGet(url);
-            String response = httpClient.execute(httpGet, res -> {
-                if (res.getCode() == 200) {
-                    return EntityUtils.toString(res.getEntity(), StandardCharsets.UTF_8);
-                }
-                return null;
-            });
-
-            if (response != null) {
-                JSONObject json = JSON.parseObject(response);
-                if (json.containsKey("errmsg")) {
-                    log.error("获取用户信息失败：{}", json.getString("errmsg"));
-                }
-                return json;
-            }
-        } catch (Exception e) {
-            log.error("获取用户信息失败", e);
-        }
-
-        return new JSONObject();
-    }
-
-    /**
-     * 生成二维码图片（使用第三方 API）
-     *
-     * @param content 二维码内容
-     * @return base64 图片
-     */
-    private String generateQrCodeImage(String content) {
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            String apiUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(content);
-            HttpGet httpGet = new HttpGet(apiUrl);
-
-            byte[] imageBytes = httpClient.execute(httpGet, res -> {
-                if (res.getCode() == 200) {
-                    return res.getEntity().getContent().readAllBytes();
-                }
-                return null;
-            });
-
-            if (imageBytes != null) {
-                String base64 = java.util.Base64.getEncoder().encodeToString(imageBytes);
-                return "data:image/png;base64," + base64;
-            }
-        } catch (Exception e) {
-            log.error("生成二维码失败", e);
-        }
-
-        // 降级方案：返回空图片
-        return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
-    }
-
-    /**
-     * URL 编码
-     */
-    private String encodeURIComponent(String str) {
         try {
-            return java.net.URLEncoder.encode(str, StandardCharsets.UTF_8.name())
-                .replace("+", "%20");
-        } catch (Exception e) {
-            return str;
+            String accessToken = wxMpService.getOauth2Service().getAccessToken(code);
+            WxMpUser user = wxMpService.getOauth2Service().getUserInfo(accessToken, code);
+
+            Map<String, String> result = new HashMap<>();
+            result.put("access_token", accessToken);
+            result.put("openid", user.getOpenId());
+            result.put("nickname", user.getNickname());
+            result.put("avatar", user.getHeadImgUrl());
+
+            log.info("获取 access_token 成功，openid={}", user.getOpenId());
+            return result;
+        } catch (WxErrorException e) {
+            log.error("获取 access_token 失败：{}", e.getError().getErrorMsg(), e);
+            return new HashMap<>();
         }
     }
 
@@ -312,17 +203,27 @@ public class WechatUtil {
         private static final long serialVersionUID = 1L;
 
         /**
-         * 场景字符串
+         * 场景字符串（state）
          */
         private String scene;
 
         /**
-         * 二维码 URL（微信 OAuth2.0 链接）
+         * 场景 ID（scene_id）
+         */
+        private Integer sceneId;
+
+        /**
+         * 二维码 ticket
+         */
+        private String ticket;
+
+        /**
+         * 二维码 URL（微信 OAuth2.0 授权链接）
          */
         private String qrCodeUrl;
 
         /**
-         * 二维码 base64 图片
+         * 二维码图片 base64（可选）
          */
         private String qrCodeBase64;
 
