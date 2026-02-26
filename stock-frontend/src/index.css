@@ -1685,8 +1685,8 @@ body {
 
 /* 委托面板 */
 .trade-panel {
-  background: var(--color-bg-card);
-  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 107, 53, 0.15);
   border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
@@ -1727,8 +1727,8 @@ body {
 
 .full-width :global(.ant-select-selector),
 .full-width-input :global(.ant-input-number) {
-  background: var(--color-bg-secondary) !important;
-  border-color: var(--border-color) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 107, 53, 0.2) !important;
   font-family: var(--font-mono) !important;
   color: var(--text-primary) !important;
 }
@@ -1752,9 +1752,9 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 16px;
-  background: var(--color-bg-tertiary);
+  background: rgba(255, 107, 53, 0.05);
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(255, 107, 53, 0.15);
 }
 
 .price-label {
@@ -1785,7 +1785,7 @@ body {
   font-weight: 600;
   font-family: var(--font-mono);
   padding: 4px 10px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 107, 53, 0.08);
   border-radius: var(--radius-sm);
 }
 
@@ -1813,11 +1813,11 @@ body {
   font-family: var(--font-mono);
   font-size: 14px;
   font-weight: 600;
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(255, 107, 53, 0.2);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all var(--transition-base);
-  background: var(--color-bg-secondary);
+  background: rgba(255, 255, 255, 0.02);
   color: var(--text-secondary);
   letter-spacing: 1px;
 }
