@@ -153,7 +153,7 @@ public class OrderServiceImpl implements OrderService {
 
         return orders.stream()
             .map(o -> convertToDTO(o, instrumentMapper.findByInstrumentCode(o.getInstrumentCode())))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Override

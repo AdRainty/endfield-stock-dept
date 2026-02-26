@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 持仓服务实现类
@@ -35,7 +35,7 @@ public class PositionServiceImpl implements PositionService {
         return positions.stream()
             .filter(p -> p.getQuantity().compareTo(BigDecimal.ZERO) > 0)
             .map(this::convertToDTO)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Override
@@ -44,7 +44,7 @@ public class PositionServiceImpl implements PositionService {
         return positions.stream()
             .filter(p -> p.getQuantity().compareTo(BigDecimal.ZERO) > 0)
             .map(this::convertToDTO)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Override
@@ -144,7 +144,7 @@ public class PositionServiceImpl implements PositionService {
         position.setAvailableQuantity(position.getAvailableQuantity().add(quantity));
         position.setCostAmount(newCostAmount);
         position.setCostPrice(newQuantity.compareTo(BigDecimal.ZERO) > 0
-            ? newCostAmount.divide(newQuantity, 2, BigDecimal.ROUND_HALF_UP) : BigDecimal.ZERO);
+            ? newCostAmount.divide(newQuantity, 2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
         position.setLatestPrice(price);
 
         userPositionMapper.updateById(position);
@@ -168,7 +168,7 @@ public class PositionServiceImpl implements PositionService {
         // 计算盈亏
         BigDecimal sellAmount = price.multiply(quantity);
         BigDecimal costRatio = position.getCostAmount().divide(
-            position.getQuantity().add(quantity), 4, BigDecimal.ROUND_HALF_UP);
+            position.getQuantity().add(quantity), 4, RoundingMode.HALF_UP);
         BigDecimal sellCost = costRatio.multiply(quantity);
         BigDecimal profitLoss = sellAmount.subtract(sellCost);
 
@@ -178,9 +178,8 @@ public class PositionServiceImpl implements PositionService {
 
         // 计算盈亏比例
         if (position.getCostAmount().compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal marketValue = position.getQuantity().multiply(position.getLatestPrice());
             position.setProfitLossRate(
-                position.getProfitLoss().divide(position.getCostAmount(), 4, BigDecimal.ROUND_HALF_UP)
+                position.getProfitLoss().divide(position.getCostAmount(), 4, RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100)));
         }
 

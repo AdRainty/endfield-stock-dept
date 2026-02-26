@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -151,10 +152,10 @@ public class KlineServiceImpl implements KlineService {
             return rawList.stream()
                 .collect(Collectors.groupingBy(
                     h -> h.getTradeTime().withSecond(0).withNano(0))) // 按分钟分组
-                .entrySet().stream()
-                .map(entry -> aggregateMinute(entry.getValue()))
+                .values().stream()
+                .map(this::aggregateMinute)
                 .sorted(Comparator.comparing(KlineDTO::getTime))
-                .collect(Collectors.toList());
+                .toList();
         }
 
         List<KlineDTO> result = new ArrayList<>();
@@ -164,10 +165,10 @@ public class KlineServiceImpl implements KlineService {
             result = rawList.stream()
                 .collect(Collectors.groupingBy(
                     h -> h.getTradeTime().toLocalDate()))
-                .entrySet().stream()
-                .map(entry -> aggregateDay(entry.getValue()))
+                .values().stream()
+                .map(this::aggregateDay)
                 .sorted(Comparator.comparing(KlineDTO::getTime))
-                .collect(Collectors.toList());
+                .toList();
         } else if ("1M".equals(period)) {
             // 月 K：按月聚合
             result = rawList.stream()
@@ -176,7 +177,7 @@ public class KlineServiceImpl implements KlineService {
                 .entrySet().stream()
                 .map(entry -> aggregateMonth(entry.getValue(), entry.getKey()))
                 .sorted(Comparator.comparing(KlineDTO::getTime))
-                .collect(Collectors.toList());
+                .toList();
         } else if ("1Y".equals(period)) {
             // 年 K：按年聚合
             result = rawList.stream()
@@ -185,25 +186,10 @@ public class KlineServiceImpl implements KlineService {
                 .entrySet().stream()
                 .map(entry -> aggregateYear(entry.getValue(), entry.getKey()))
                 .sorted(Comparator.comparing(KlineDTO::getTime))
-                .collect(Collectors.toList());
+                .toList();
         }
 
         return result;
-    }
-
-    /**
-     * 将 TradeRecord 转换为 KlineDTO（用于单条记录）
-     */
-    private KlineDTO toKlineDTO(TradeRecord tr) {
-        KlineDTO dto = new KlineDTO();
-        dto.setTime(tr.getTradeTime());
-        dto.setOpen(tr.getPrice());
-        dto.setHigh(tr.getPrice());
-        dto.setLow(tr.getPrice());
-        dto.setClose(tr.getPrice());
-        dto.setVolume(tr.getQuantity());
-        dto.setTurnover(tr.getAmount());
-        return dto;
     }
 
     /**
@@ -274,24 +260,21 @@ public class KlineServiceImpl implements KlineService {
     private LocalDateTime getStartTime(LocalDateTime now, String period, Integer limit) {
         int bars = limit != null ? limit : 100;
 
-        switch (period) {
-            case "1m":
-            case "1T":
+        return switch (period) {
+            case "1m", "1T" ->
                 // 分时：向前推 bars 分钟
-                return now.getMinute() > 0 ? now.withSecond(0).withNano(0).minusMinutes(bars) : now.minusMinutes(bars);
-            case "1d":
-            case "1D":
+                    now.getMinute() > 0 ? now.withSecond(0).withNano(0).minusMinutes(bars) : now.minusMinutes(bars);
+            case "1d", "1D" ->
                 // 日 K：向前推 bars 天
-                return now.minusDays(bars);
-            case "1M":
+                    now.minusDays(bars);
+            case "1M" ->
                 // 月 K：向前推 bars 个月
-                return now.minusMonths(bars);
-            case "1Y":
+                    now.minusMonths(bars);
+            case "1Y" ->
                 // 年 K：向前推 bars 年
-                return now.minusYears(bars);
-            default:
-                return now.minusDays(bars);
-        }
+                    now.minusYears(bars);
+            default -> now.minusDays(bars);
+        };
     }
 
     /**
@@ -314,7 +297,7 @@ public class KlineServiceImpl implements KlineService {
                     dto.setChangeAmount(dto.getClose().subtract(prevClose));
                     dto.setChangePercent(
                         dto.getClose().subtract(prevClose)
-                            .divide(prevClose, 4, BigDecimal.ROUND_HALF_UP)
+                            .divide(prevClose, 4, RoundingMode.HALF_UP)
                             .multiply(BigDecimal.valueOf(100)));
                 }
                 // 更新 prevClose 为当前 K 线的收盘价，用于下一根 K 线

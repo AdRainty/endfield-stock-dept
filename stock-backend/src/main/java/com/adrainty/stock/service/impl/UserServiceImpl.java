@@ -16,12 +16,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 /**
  * 用户服务实现类
@@ -142,9 +143,9 @@ public class UserServiceImpl implements UserService {
         BigDecimal totalAsset = availableCapital.add(lockedCapital).add(positionValue);
 
         // 计算初始资金（从资金流水中获取）
-        BigDecimal initialCapital = getInitialCapital(userId);
+        BigDecimal initialCapital = getInitialCapital();
         BigDecimal totalReturnRate = initialCapital.compareTo(BigDecimal.ZERO) > 0
-            ? totalProfitLoss.divide(initialCapital, 4, BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100))
+            ? totalProfitLoss.divide(initialCapital, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100))
             : BigDecimal.ZERO;
 
         // 计算今日盈亏（今日成交记录的盈亏总和）
@@ -168,7 +169,7 @@ public class UserServiceImpl implements UserService {
         List<User> allUsers = userMapper.selectList(null);
 
         // 过滤掉管理员
-        List<LeaderboardDTO> leaderboard = allUsers.stream()
+        return allUsers.stream()
             .filter(u -> !"ADMIN".equals(u.getRole().getCode()))
             .map(user -> {
                 LeaderboardDTO dto = new LeaderboardDTO();
@@ -189,26 +190,24 @@ public class UserServiceImpl implements UserService {
                 }
 
                 // 计算收益率
-                BigDecimal initialCapital = getInitialCapital(user.getId());
+                BigDecimal initialCapital = getInitialCapital();
                 dto.setReturnRate(initialCapital.compareTo(BigDecimal.ZERO) > 0
-                    ? dto.getProfitLoss().divide(initialCapital, 4, BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100))
+                    ? dto.getProfitLoss().divide(initialCapital, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100))
                     : BigDecimal.ZERO);
 
                 return dto;
             })
-            .sorted((a, b) -> {
+            .sorted((a, b) ->
                 // 按收益率降序排序
-                return b.getReturnRate().compareTo(a.getReturnRate());
-            })
-            .collect(Collectors.toList());
-
-        return leaderboard;
+                b.getReturnRate().compareTo(a.getReturnRate())
+            )
+            .toList();
     }
 
     /**
      * 获取用户初始资金（从资金流水中获取初始化金额）
      */
-    private BigDecimal getInitialCapital(Long userId) {
+    private BigDecimal getInitialCapital() {
         // 从资金流水中获取初始资金（DEPOSIT 类型的总和）
         return BigDecimal.valueOf(100000); // 默认初始资金 10 万
     }
@@ -229,7 +228,7 @@ public class UserServiceImpl implements UserService {
 
         // 计算今日盈亏：卖出成交的盈亏总和
         BigDecimal todayPL = BigDecimal.ZERO;
-        for (TradeRecord trade : todayTrades) {
+        for (TradeRecord ignored : todayTrades) {
             // 这里简化计算，实际应该根据买卖方向和成本价计算
             // 暂时返回 0，因为需要更复杂的逻辑来计算实际盈亏
             todayPL = todayPL.add(BigDecimal.ZERO);
@@ -250,7 +249,7 @@ public class UserServiceImpl implements UserService {
 
         return positions.stream()
             .map(UserPosition::getProfitLoss)
-            .filter(pl -> pl != null)
+            .filter(Objects::nonNull)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

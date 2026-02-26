@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 品种服务实现类
@@ -30,13 +30,13 @@ public class InstrumentServiceImpl implements InstrumentService, CommandLineRunn
     @Override
     public List<InstrumentDTO> getAllInstruments() {
         List<Instrument> instruments = instrumentMapper.selectList(null);
-        return instruments.stream().map(this::convertToDTO).collect(Collectors.toList());
+        return instruments.stream().map(this::convertToDTO).toList();
     }
 
     @Override
     public List<InstrumentDTO> getByExchangeId(Long exchangeId) {
         List<Instrument> instruments = instrumentMapper.findByExchangeId(exchangeId);
-        return instruments.stream().map(this::convertToDTO).collect(Collectors.toList());
+        return instruments.stream().map(this::convertToDTO).toList();
     }
 
     @Override
@@ -46,7 +46,7 @@ public class InstrumentServiceImpl implements InstrumentService, CommandLineRunn
     }
 
     @Override
-    @Transactional
+
     public void initInstruments() {
         // 四号谷底交易所品种 (exchange_id = 1)
         initInstrument("VL_ENERGY", "能源调度券", 1L, 100.00);
@@ -99,8 +99,8 @@ public class InstrumentServiceImpl implements InstrumentService, CommandLineRunn
         }
 
         BigDecimal changeAmount = price.subtract(instrument.getPrevClosePrice());
-        BigDecimal changePercent = changeAmount.divide(instrument.getPrevClosePrice(), 4, BigDecimal.ROUND_HALF_UP)
-            .multiply(BigDecimal.valueOf(100));
+        BigDecimal changePercent = changeAmount.divide(instrument.getPrevClosePrice(), 4, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
 
         instrument.setChangeAmount(changeAmount);
         instrument.setChangePercent(changePercent);
@@ -128,6 +128,7 @@ public class InstrumentServiceImpl implements InstrumentService, CommandLineRunn
     }
 
     @Override
+    @Transactional
     public void run(String... args) {
         initInstruments();
     }
