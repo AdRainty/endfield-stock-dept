@@ -4,9 +4,11 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 // 页面导入
 import Login from "./pages/Login";
 import Layout from "./layouts/BasicLayout";
+import Welcome from "./pages/Welcome";
 import Market from "./pages/Market";
 import Trade from "./pages/Trade";
 import Position from "./pages/Position";
+import OrdersHistory from "./pages/OrdersHistory";
 import AdminUsers from "./pages/AdminUsers";
 import AdminExchange from "./pages/AdminExchange";
 
@@ -25,10 +27,12 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-          <Route index element={<Navigate to="/market" replace />} />
+          <Route index element={<Navigate to="/welcome" replace />} />
+          <Route path="welcome" element={<Welcome />} />
           <Route path="market" element={<Market />} />
           <Route path="trade" element={<Trade />} />
           <Route path="position" element={<Position />} />
+          <Route path="orders" element={<OrdersHistory />} />
           <Route path="admin" element={<Navigate to="/admin/users" replace />} />
           <Route path="admin/users" element={<AdminUsers />} />
           <Route path="admin/exchange" element={<AdminExchange />} />

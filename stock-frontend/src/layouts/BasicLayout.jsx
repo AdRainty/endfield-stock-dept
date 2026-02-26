@@ -13,6 +13,8 @@ import {
   ThunderboltOutlined,
   DashboardOutlined,
   BankOutlined,
+  FileTextOutlined,
+  HomeOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 
@@ -26,9 +28,24 @@ const BasicLayout = () => {
 
   const menuItems = [
     {
+      key: "/welcome",
+      icon: <HomeOutlined />,
+      label: <span>首页 <span className="menu-sub">HOME</span></span>,
+    },
+    {
       key: "/market",
       icon: <LineChartOutlined />,
       label: <span>行情中心 <span className="menu-sub">MARKET</span></span>,
+    },
+    {
+      key: "/trade",
+      icon: <ShopOutlined />,
+      label: <span>交易委托 <span className="menu-sub">TRADE</span></span>,
+    },
+    {
+      key: "/orders",
+      icon: <FileTextOutlined />,
+      label: <span>历史委托 <span className="menu-sub">ORDERS</span></span>,
     },
     {
       key: "/position",
