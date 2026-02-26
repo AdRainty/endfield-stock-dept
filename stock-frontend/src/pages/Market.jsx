@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Card, Table, Select, Row, Col, Statistic, Tag } from "antd";
-import { LineChartOutlined } from "@ant-design/icons";
+import { Select, Tag, Spin } from "antd";
+import { LineChartOutlined, CaretUpOutlined, CaretDownOutlined, DashboardOutlined } from "@ant-design/icons";
 import axios from "axios";
-import { Line } from "recharts";
-import { LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Line as RechartsLine } from "recharts";
 
 const { Option } = Select;
 
@@ -75,188 +73,167 @@ const Market = () => {
   useEffect(() => {
     if (selectedExchange && selectedInstrument) {
       getOrderBook();
-      // 每 3 秒刷新一次档口
       const timer = setInterval(getOrderBook, 3000);
       return () => clearInterval(timer);
     }
   }, [selectedExchange, selectedInstrument]);
 
-  // 品种表格列
-  const columns = [
-    {
-      title: "品种代码",
-      dataIndex: "instrumentCode",
-      key: "instrumentCode",
-    },
-    {
-      title: "品种名称",
-      dataIndex: "name",
-      key: "name",
-    },
-    {
-      title: "当前价",
-      dataIndex: "currentPrice",
-      key: "currentPrice",
-      render: (val) => <span style={{ fontWeight: "bold" }}>{val?.toFixed(2)}</span>,
-    },
-    {
-      title: "涨跌幅",
-      dataIndex: "changePercent",
-      key: "changePercent",
-      render: (val) => (
-        <span style={{ color: val >= 0 ? "#cf1322" : "#3f8600" }}>
-          {val >= 0 ? "+" : ""}{val?.toFixed(2)}%
-        </span>
-      ),
-    },
-    {
-      title: "涨跌额",
-      dataIndex: "changeAmount",
-      key: "changeAmount",
-      render: (val) => (
-        <span style={{ color: val >= 0 ? "#cf1322" : "#3f8600" }}>
-          {val >= 0 ? "+" : ""}{val?.toFixed(2)}
-        </span>
-      ),
-    },
-    {
-      title: "最高价",
-      dataIndex: "highPrice",
-      key: "highPrice",
-    },
-    {
-      title: "最低价",
-      dataIndex: "lowPrice",
-      key: "lowPrice",
-    },
-    {
-      title: "成交量",
-      dataIndex: "volume",
-      key: "volume",
-    },
-  ];
-
   return (
-    <div>
-      <Card style={{ marginBottom: 16 }}>
-        <Row gutter={16} align="middle">
-          <Col>
-            <span style={{ fontSize: 16, fontWeight: "bold" }}>选择交易所：</span>
-          </Col>
-          <Col>
-            <Select
-              value={selectedExchange}
-              onChange={setSelectedExchange}
-              style={{ width: 150 }}
-            >
-              {exchanges.map((e) => (
-                <Option key={e.id} value={e.id}>
-                  {e.name}
-                </Option>
-              ))}
-            </Select>
-          </Col>
-          <Col style={{ marginLeft: 24 }}>
-            <span style={{ fontSize: 16, fontWeight: "bold" }}>选择品种：</span>
-          </Col>
-          <Col>
-            <Select
-              value={selectedInstrument}
-              onChange={setSelectedInstrument}
-              style={{ width: 200 }}
-              loading={loading}
-            >
-              {instruments.map((i) => (
-                <Option key={i.instrumentCode} value={i.instrumentCode}>
-                  {i.name} ({i.instrumentCode})
-                </Option>
-              ))}
-            </Select>
-          </Col>
-        </Row>
-      </Card>
+    <div className="market-page">
+      {/* 页面头部 */}
+      <div className="page-header">
+        <div className="header-title">
+          <LineChartOutlined className="title-icon" />
+          <div className="title-content">
+            <h1 className="page-title-cn">行情中心</h1>
+            <span className="page-title-en">MARKET CENTER</span>
+          </div>
+        </div>
+        <div className="header-controls">
+          <Select
+            className="exchange-select"
+            value={selectedExchange}
+            onChange={setSelectedExchange}
+            dropdownClassName="custom-dropdown"
+          >
+            {exchanges.map((e) => (
+              <Option key={e.id} value={e.id}>
+                <span className="exchange-option">
+                  <DashboardOutlined /> {e.name}
+                </span>
+              </Option>
+            ))}
+          </Select>
+        </div>
+      </div>
 
-      <Row gutter={16}>
-        <Col span={16}>
-          <Card title={<span><LineChartOutlined /> 品种列表</span>}>
-            <Table
-              columns={columns}
-              dataSource={instruments}
-              rowKey="instrumentCode"
-              pagination={false}
-              size="small"
-              onRow={(record) => ({
-                onClick: () => setSelectedInstrument(record.instrumentCode),
-                style: {
-                  cursor: "pointer",
-                  background:
-                    selectedInstrument === record.instrumentCode
-                      ? "#e6f7ff"
-                      : "",
-                },
-              })}
-            />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card title="买卖档口">
-            {orderBook ? (
-              <div>
-                <div style={{ textAlign: "center", marginBottom: 16 }}>
-                  <Statistic
-                    title="最新价"
-                    value={orderBook.latestPrice}
-                    precision={2}
-                    valueStyle={{
-                      color: orderBook.changePercent >= 0 ? "#cf1322" : "#3f8600",
-                    }}
-                  />
-                  <Tag color={orderBook.changePercent >= 0 ? "red" : "green"}>
-                    {orderBook.changePercent >= 0 ? "+" : ""}
-                    {orderBook.changePercent?.toFixed(2)}%
+      {/* 主要内容 */}
+      <div className="market-content">
+        {/* 左侧：品种列表 */}
+        <div className="instruments-panel">
+          <div className="panel-header">
+            <span className="panel-title">
+              <span className="title-dot"></span>
+              交易品种 / INSTRUMENTS
+            </span>
+            {loading && <Spin size="small" className="panel-loader" />}
+          </div>
+          <div className="instruments-list">
+            {instruments.map((inst) => (
+              <div
+                key={inst.instrumentCode}
+                className={`instrument-card ${selectedInstrument === inst.instrumentCode ? 'active' : ''}`}
+                onClick={() => setSelectedInstrument(inst.instrumentCode)}
+              >
+                <div className="inst-header">
+                  <span className="inst-code">{inst.instrumentCode}</span>
+                  <Tag className={`inst-tag type-${inst.instrumentCode?.charAt(0)}`}>
+                    {inst.name}
                   </Tag>
                 </div>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr style={{ background: "#fafafa" }}>
-                      <th style={{ padding: 8, color: "#cf1322" }}>买价</th>
-                      <th style={{ padding: 8 }}>数量</th>
-                      <th style={{ padding: 8 }} />
-                      <th style={{ padding: 8 }}>数量</th>
-                      <th style={{ padding: 8, color: "#3f8600" }}>卖价</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Array.from({ length: 5 }).map((_, i) => {
-                      const bid = orderBook.bids?.[i] || {};
-                      const ask = orderBook.asks?.[i] || {};
-                      return (
-                        <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                          <td style={{ padding: 8, textAlign: "right", color: bid.price ? "#cf1322" : "#999" }}>
-                            {bid.price?.toFixed(2) || "-"}
-                          </td>
-                          <td style={{ padding: 8, textAlign: "right" }}>
-                            {bid.quantity?.toFixed(0) || "-"}
-                          </td>
-                          <td style={{ padding: 8, textAlign: "center" }}>{5 - i}</td>
-                          <td style={{ padding: 8, textAlign: "right" }}>
-                            {ask.quantity?.toFixed(0) || "-"}
-                          </td>
-                          <td style={{ padding: 8, textAlign: "left", color: ask.price ? "#3f8600" : "#999" }}>
-                            {ask.price?.toFixed(2) || "-"}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                <div className="inst-body">
+                  <div className="inst-price">
+                    <span className="price-label">现价</span>
+                    <span className="price-value">{inst.currentPrice?.toFixed(2)}</span>
+                  </div>
+                  <div className={`inst-change ${inst.changePercent >= 0 ? 'rise' : 'fall'}`}>
+                    {inst.changePercent >= 0 ? <CaretUpOutlined /> : <CaretDownOutlined />}
+                    <span>{inst.changePercent >= 0 ? '+' : ''}{inst.changePercent?.toFixed(2)}%</span>
+                  </div>
+                </div>
+                <div className="inst-footer">
+                  <span className="inst-vol">成交量：{inst.volume?.toLocaleString()}</span>
+                </div>
               </div>
-            ) : (
-              <div style={{ textAlign: "center", padding: 40 }}>请选择品种查看档口</div>
-            )}
-          </Card>
-        </Col>
-      </Row>
+            ))}
+          </div>
+        </div>
+
+        {/* 右侧：档口详情 */}
+        <div className="orderbook-panel">
+          <div className="panel-header">
+            <span className="panel-title">
+              <span className="title-dot"></span>
+              委托档口 / ORDER BOOK
+            </span>
+            <span className="panel-subtitle">
+              {selectedInstrument || 'SELECT INSTRUMENT'}
+            </span>
+          </div>
+
+          {orderBook ? (
+            <div className="orderbook-content">
+              {/* 当前价格 */}
+              <div className="current-price-display">
+                <div className="price-main">
+                  <span className={`price-big ${orderBook.changePercent >= 0 ? 'rise' : 'fall'}`}>
+                    {orderBook.latestPrice?.toFixed(2)}
+                  </span>
+                  <span className="price-currency">CNY</span>
+                </div>
+                <div className={`price-change ${orderBook.changePercent >= 0 ? 'rise' : 'fall'}`}>
+                  <span className="change-value">
+                    {orderBook.changeAmount >= 0 ? '+' : ''}{orderBook.changeAmount?.toFixed(2)}
+                  </span>
+                  <span className="change-percent">
+                    {orderBook.changePercent >= 0 ? '+' : ''}{orderBook.changePercent?.toFixed(2)}%
+                  </span>
+                </div>
+              </div>
+
+              {/* 买卖档口表格 */}
+              <div className="orderbook-table">
+                <div className="orderbook-header">
+                  <span className="col-label">买价 / BID</span>
+                  <span className="col-label">数量</span>
+                  <span className="col-label">档位</span>
+                  <span className="col-label">数量</span>
+                  <span className="col-label">卖价 / ASK</span>
+                </div>
+                <div className="orderbook-rows">
+                  {Array.from({ length: 5 }).map((_, i) => {
+                    const bid = orderBook.bids?.[i] || {};
+                    const ask = orderBook.asks?.[i] || {};
+                    const level = 5 - i;
+                    return (
+                      <div key={i} className="orderbook-row" style={{ '--level': level }}>
+                        <span className={`cell bid-price ${bid.price ? '' : 'empty'}`}>
+                          {bid.price?.toFixed(2) || '-'}
+                        </span>
+                        <span className={`cell bid-qty ${bid.quantity ? '' : 'empty'}`}>
+                          {bid.quantity?.toFixed(0) || '-'}
+                        </span>
+                        <span className="cell level">{level}</span>
+                        <span className={`cell ask-qty ${ask.quantity ? '' : 'empty'}`}>
+                          {ask.quantity?.toFixed(0) || '-'}
+                        </span>
+                        <span className={`cell ask-price ${ask.price ? '' : 'empty'}`}>
+                          {ask.price?.toFixed(2) || '-'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 深度条装饰 */}
+              <div className="depth-indicator">
+                <div className="depth-bid" style={{ width: `${Math.random() * 60 + 20}%` }}></div>
+                <div className="depth-center"></div>
+                <div className="depth-ask" style={{ width: `${Math.random() * 60 + 20}%` }}></div>
+              </div>
+            </div>
+          ) : (
+            <div className="empty-state">
+              <div className="empty-icon">
+                <LineChartOutlined />
+              </div>
+              <p className="empty-text">请选择交易品种查看档口数据</p>
+              <p className="empty-subtext">SELECT AN INSTRUMENT TO VIEW ORDER BOOK</p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

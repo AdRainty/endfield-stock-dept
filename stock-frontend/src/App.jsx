@@ -1,7 +1,5 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { ConfigProvider, theme } from "antd";
-import zhCN from "antd/locale/zh_CN";
 
 // 页面导入
 import Login from "./pages/Login";
@@ -22,20 +20,18 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   return (
-    <ConfigProvider locale={zhCN} theme={{ algorithm: theme.defaultAlgorithm }}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-            <Route index element={<Navigate to="/market" replace />} />
-            <Route path="market" element={<Market />} />
-            <Route path="trade" element={<Trade />} />
-            <Route path="position" element={<Position />} />
-            <Route path="admin" element={<Admin />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </ConfigProvider>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route index element={<Navigate to="/market" replace />} />
+          <Route path="market" element={<Market />} />
+          <Route path="trade" element={<Trade />} />
+          <Route path="position" element={<Position />} />
+          <Route path="admin" element={<Admin />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 

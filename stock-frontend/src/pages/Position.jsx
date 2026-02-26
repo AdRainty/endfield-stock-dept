@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Card, Table, Select, Row, Col, Statistic, Tag } from "antd";
-import { WalletOutlined } from "@ant-design/icons";
+import { Select, Table, Tag, Card } from "antd";
+import { WalletOutlined, CaretUpOutlined, CaretDownOutlined, DashboardOutlined } from "@ant-design/icons";
 import axios from "axios";
 
 const { Option } = Select;
@@ -12,7 +12,6 @@ const Position = () => {
   const [account, setAccount] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // 获取交易所
   const getExchanges = async () => {
     try {
       const res = await axios.get("/api/exchange/list");
@@ -27,7 +26,6 @@ const Position = () => {
     }
   };
 
-  // 获取持仓
   const getPositions = async () => {
     if (!selectedExchange) return;
     setLoading(true);
@@ -43,7 +41,6 @@ const Position = () => {
     }
   };
 
-  // 获取资金账户
   const getAccount = async () => {
     if (!selectedExchange) return;
     try {
@@ -72,55 +69,66 @@ const Position = () => {
       title: "品种代码",
       dataIndex: "instrumentCode",
       key: "instrumentCode",
+      width: 120,
+      render: (val) => <span className="instrument-code">{val}</span>,
     },
     {
       title: "品种名称",
       dataIndex: "instrumentName",
       key: "instrumentName",
+      width: 100,
     },
     {
       title: "持仓数量",
       dataIndex: "quantity",
       key: "quantity",
-      render: (val) => val?.toFixed(2),
+      width: 100,
+      render: (val) => <span className="quantity">{val?.toFixed(2)}</span>,
     },
     {
       title: "可用数量",
       dataIndex: "availableQuantity",
       key: "availableQuantity",
-      render: (val) => val?.toFixed(2),
+      width: 100,
+      render: (val) => <span className="available">{val?.toFixed(2)}</span>,
     },
     {
       title: "冻结数量",
       dataIndex: "frozenQuantity",
       key: "frozenQuantity",
-      render: (val) => val?.toFixed(2),
+      width: 100,
+      render: (val) => <span className="frozen">{val?.toFixed(2)}</span>,
     },
     {
       title: "成本价",
       dataIndex: "costPrice",
       key: "costPrice",
-      render: (val) => val?.toFixed(2),
+      width: 90,
+      render: (val) => <span className="cost">{val?.toFixed(2)}</span>,
     },
     {
       title: "最新价",
       dataIndex: "latestPrice",
       key: "latestPrice",
-      render: (val) => val?.toFixed(2),
+      width: 90,
+      render: (val) => <span className="price">{val?.toFixed(2)}</span>,
     },
     {
       title: "持仓市值",
       dataIndex: "marketValue",
       key: "marketValue",
-      render: (val) => val?.toFixed(2),
+      width: 110,
+      render: (val) => <span className="value">{val?.toFixed(2)}</span>,
     },
     {
       title: "持仓盈亏",
       dataIndex: "profitLoss",
       key: "profitLoss",
+      width: 110,
       render: (val) => (
-        <span style={{ color: val >= 0 ? "#cf1322" : "#3f8600" }}>
-          {val >= 0 ? "+" : ""}{val?.toFixed(2)}
+        <span className={`profit-loss ${val >= 0 ? 'rise' : 'fall'}`}>
+          {val >= 0 ? <CaretUpOutlined /> : <CaretDownOutlined />}
+          {val >= 0 ? '+' : ''}{val?.toFixed(2)}
         </span>
       ),
     },
@@ -128,93 +136,118 @@ const Position = () => {
       title: "盈亏比例",
       dataIndex: "profitLossRate",
       key: "profitLossRate",
+      width: 100,
       render: (val) => (
-        <Tag color={val >= 0 ? "red" : "green"}>
-          {val >= 0 ? "+" : ""}{val?.toFixed(2)}%
+        <Tag className={`profit-rate-tag ${val >= 0 ? 'rise' : 'fall'}`}>
+          {val >= 0 ? '+' : ''}{val?.toFixed(2)}%
         </Tag>
       ),
     },
   ];
 
   return (
-    <div>
-      <Card style={{ marginBottom: 16 }}>
-        <Row gutter={16} align="middle">
-          <Col>
-            <span style={{ fontSize: 16, fontWeight: "bold" }}>选择交易所：</span>
-          </Col>
-          <Col>
-            <Select
-              value={selectedExchange}
-              onChange={setSelectedExchange}
-              style={{ width: 150 }}
-            >
-              {exchanges.map((e) => (
-                <Option key={e.id} value={e.id}>
-                  {e.name}
-                </Option>
-              ))}
-            </Select>
-          </Col>
-        </Row>
-      </Card>
+    <div className="position-page">
+      {/* 页面头部 */}
+      <div className="page-header">
+        <div className="header-title">
+          <WalletOutlined className="title-icon" />
+          <div className="title-content">
+            <h1 className="page-title-cn">持仓查询</h1>
+            <span className="page-title-en">POSITION QUERY</span>
+          </div>
+        </div>
+        <div className="header-controls">
+          <Select
+            value={selectedExchange}
+            onChange={setSelectedExchange}
+            dropdownClassName="custom-dropdown"
+          >
+            {exchanges.map((e) => (
+              <Option key={e.id} value={e.id}>
+                <DashboardOutlined /> {e.name}
+              </Option>
+            ))}
+          </Select>
+        </div>
+      </div>
 
+      {/* 资金卡片 */}
       {account && (
-        <Row gutter={16} style={{ marginBottom: 16 }}>
-          <Col span={6}>
-            <Card>
-              <Statistic
-                title="可用资金"
-                value={account.available}
-                precision={2}
-                prefix="¥"
-              />
-            </Card>
-          </Col>
-          <Col span={6}>
-            <Card>
-              <Statistic
-                title="冻结资金"
-                value={account.frozen}
-                precision={2}
-                prefix="¥"
-              />
-            </Card>
-          </Col>
-          <Col span={6}>
-            <Card>
-              <Statistic
-                title="持仓市值"
-                value={account.positionValue}
-                precision={2}
-                prefix="¥"
-              />
-            </Card>
-          </Col>
-          <Col span={6}>
-            <Card>
-              <Statistic
-                title="总资产"
-                value={account.totalAsset}
-                precision={2}
-                prefix="¥"
-                valueStyle={{ color: account.totalProfitLoss >= 0 ? "#cf1322" : "#3f8600" }}
-              />
-            </Card>
-          </Col>
-        </Row>
+        <div className="account-cards">
+          <div className="account-card">
+            <div className="card-icon available">
+              <TrendUpOutlined />
+            </div>
+            <div className="card-content">
+              <span className="card-label">可用资金</span>
+              <span className="card-value">{account.available?.toFixed(2)}</span>
+              <span className="card-unit">CNY</span>
+            </div>
+          </div>
+          <div className="account-card">
+            <div className="card-icon frozen">
+              <WalletOutlined />
+            </div>
+            <div className="card-content">
+              <span className="card-label">冻结资金</span>
+              <span className="card-value">{account.frozen?.toFixed(2)}</span>
+              <span className="card-unit">CNY</span>
+            </div>
+          </div>
+          <div className="account-card">
+            <div className="card-icon position">
+              <DashboardOutlined />
+            </div>
+            <div className="card-content">
+              <span className="card-label">持仓市值</span>
+              <span className="card-value">{account.positionValue?.toFixed(2)}</span>
+              <span className="card-unit">CNY</span>
+            </div>
+          </div>
+          <div className="account-card total">
+            <div className="card-icon total">
+              <WalletOutlined />
+            </div>
+            <div className="card-content">
+              <span className="card-label">总资产</span>
+              <span className={`card-value ${account.totalProfitLoss >= 0 ? 'rise' : 'fall'}`}>
+                {account.totalAsset?.toFixed(2)}
+              </span>
+              <span className="card-unit">CNY</span>
+            </div>
+            <div className="card-profit">
+              <span className="profit-label">总盈亏</span>
+              <span className={`profit-value ${account.totalProfitLoss >= 0 ? 'rise' : 'fall'}`}>
+                {account.totalProfitLoss >= 0 ? '+' : ''}{account.totalProfitLoss?.toFixed(2)}
+              </span>
+            </div>
+          </div>
+        </div>
       )}
 
-      <Card title={<span><WalletOutlined /> 持仓列表</span>}>
-        <Table
-          columns={columns}
-          dataSource={positions}
-          rowKey="instrumentCode"
-          pagination={false}
-          loading={loading}
-          scroll={{ x: 1200 }}
-        />
-      </Card>
+      {/* 持仓列表 */}
+      <div className="position-panel">
+        <div className="panel-header">
+          <span className="panel-title">
+            <span className="title-dot"></span>
+            持仓列表 / POSITIONS
+          </span>
+          <span className="panel-subtitle">
+            {positions.length} 个持仓 / {selectedExchange ? 'EXCHANGE ' + selectedExchange : 'SELECT EXCHANGE'}
+          </span>
+        </div>
+        <div className="position-table-container">
+          <Table
+            columns={columns}
+            dataSource={positions}
+            rowKey="instrumentCode"
+            pagination={false}
+            loading={loading}
+            scroll={{ x: 1200 }}
+            className="position-table"
+          />
+        </div>
+      </div>
     </div>
   );
 };

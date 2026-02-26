@@ -3,13 +3,14 @@ import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Layout, Menu, Avatar, Dropdown, message } from "antd";
 import {
   LineChartOutlined,
-  TradeOutlined,
+  ShopOutlined,
   WalletOutlined,
   UserOutlined,
   SettingOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  ThunderboltOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 
@@ -25,24 +26,24 @@ const BasicLayout = () => {
     {
       key: "/market",
       icon: <LineChartOutlined />,
-      label: "行情中心",
+      label: <span>行情中心 <span className="menu-sub">MARKET</span></span>,
     },
     {
       key: "/trade",
-      icon: <TradeOutlined />,
-      label: "交易委托",
+      icon: <ShopOutlined />,
+      label: <span>交易委托 <span className="menu-sub">TRADE</span></span>,
     },
     {
       key: "/position",
       icon: <WalletOutlined />,
-      label: "持仓查询",
+      label: <span>持仓查询 <span className="menu-sub">POSITION</span></span>,
     },
     ...(user.role === "ADMIN"
       ? [
           {
             key: "/admin",
             icon: <SettingOutlined />,
-            label: "管理后台",
+            label: <span>管理后台 <span className="menu-sub">ADMIN</span></span>,
           },
         ]
       : []),
@@ -65,7 +66,7 @@ const BasicLayout = () => {
       {
         key: "profile",
         icon: <UserOutlined />,
-        label: user.nickname || "用户",
+        label: <span className="user-name">{user.nickname || "用户"}</span>,
       },
       {
         type: "divider",
@@ -75,73 +76,83 @@ const BasicLayout = () => {
         icon: <LogoutOutlined />,
         label: "退出登录",
         onClick: handleLogout,
+        className: "logout-item",
       },
     ],
   };
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Sider trigger={null} collapsible collapsed={collapsed} theme="dark">
-        <div
-          style={{
-            height: 64,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "white",
-            fontSize: collapsed ? 14 : 16,
-            fontWeight: "bold",
-            background: "#001529",
-          }}
-        >
-          {collapsed ? "终末地" : "终末地调度卷交易"}
+    <Layout className="main-layout">
+      {/* 顶部状态栏 */}
+      <Header className="top-status-bar">
+        <div className="status-left">
+          <ThunderboltOutlined className="system-logo" />
+          <span className="system-name">ENDFIELD TRADING SYSTEM</span>
+          <span className="status-separator">/</span>
+          <span className="connection-status">
+            <span className="status-dot"></span>
+            ONLINE
+          </span>
         </div>
-        <Menu
+        <div className="status-right">
+          <span className="user-display">
+            <UserOutlined /> {user.nickname || "USER"}
+          </span>
+          <span className="role-tag">{user.role === "ADMIN" ? "ADMIN" : "USER"}</span>
+        </div>
+      </Header>
+
+      <Layout className="layout-body">
+        <Sider
+          className="side-nav"
           theme="dark"
-          mode="inline"
-          selectedKeys={[location.pathname]}
-          items={menuItems}
-          onClick={({ key }) => navigate(key)}
-        />
-      </Sider>
-      <Layout>
-        <Header
-          style={{
-            padding: "0 16px",
-            background: "#fff",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
+          collapsed={collapsed}
+          collapsedWidth={70}
+          width={220}
         >
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            style={{
-              background: "none",
-              border: "none",
-              fontSize: 18,
-              cursor: "pointer",
-            }}
-          >
-            {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-          </button>
-          <Dropdown menu={dropdownMenu} placement="bottomRight">
-            <div style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
-              <Avatar src={user.avatar} icon={<UserOutlined />} />
-              <span>{user.nickname || "用户"}</span>
+          <div className="side-nav-header">
+            <ThunderboltOutlined className="nav-logo-icon" />
+            {!collapsed && <span className="nav-title">终末地交易系统</span>}
+          </div>
+
+          <Menu
+            theme="dark"
+            mode="inline"
+            selectedKeys={[location.pathname]}
+            items={menuItems}
+            onClick={({ key }) => navigate(key)}
+            className="side-menu"
+          />
+
+          <div className="side-nav-footer">
+            <button
+              className="collapse-btn"
+              onClick={() => setCollapsed(!collapsed)}
+            >
+              {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              {!collapsed && <span>收起菜单</span>}
+            </button>
+          </div>
+        </Sider>
+
+        <Layout className="content-area">
+          <Content className="main-content">
+            <Outlet />
+          </Content>
+
+          {/* 底部信息栏 */}
+          <footer className="content-footer">
+            <div className="footer-left">
+              <span>SYSTEM v2.0.26</span>
+              <span className="footer-sep">|</span>
+              <span>LATENCY: 12ms</span>
             </div>
-          </Dropdown>
-        </Header>
-        <Content
-          style={{
-            margin: 16,
-            padding: 16,
-            background: "#fff",
-            borderRadius: 4,
-          }}
-        >
-          <Outlet />
-        </Content>
+            <div className="footer-right">
+              <span>ENDFIELD PROTOCOL</span>
+              <span className="copyright">© 2026</span>
+            </div>
+          </footer>
+        </Layout>
       </Layout>
     </Layout>
   );

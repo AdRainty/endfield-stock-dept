@@ -1,0 +1,23 @@
+# Frontend
+stock-frontend/node_modules/
+stock-frontend/dist/
+stock-frontend/package-lock.json
+
+# Backend
+stock-backend/target/
+stock-backend/.mvn/
+stock-backend/mvnw
+stock-backend/mvnw.cmd
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
