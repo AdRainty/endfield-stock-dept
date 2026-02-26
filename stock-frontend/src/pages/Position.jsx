@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Select, Table, Tag, Card } from "antd";
-import { WalletOutlined, CaretUpOutlined, CaretDownOutlined, DashboardOutlined } from "@ant-design/icons";
+import { WalletOutlined, CaretUpOutlined, CaretDownOutlined, DashboardOutlined, TrendUpOutlined } from "@ant-design/icons";
 import axios from "axios";
 
 const { Option } = Select;
@@ -176,7 +176,7 @@ const Position = () => {
         <div className="account-cards">
           <div className="account-card">
             <div className="card-icon available">
-              <TrendUpOutlined />
+              <WalletOutlined />
             </div>
             <div className="card-content">
               <span className="card-label">可用资金</span>
@@ -186,7 +186,7 @@ const Position = () => {
           </div>
           <div className="account-card">
             <div className="card-icon frozen">
-              <WalletOutlined />
+              <DashboardOutlined />
             </div>
             <div className="card-content">
               <span className="card-label">冻结资金</span>
@@ -196,11 +196,29 @@ const Position = () => {
           </div>
           <div className="account-card">
             <div className="card-icon position">
-              <DashboardOutlined />
+              <TrendUpOutlined />
             </div>
             <div className="card-content">
               <span className="card-label">持仓市值</span>
               <span className="card-value">{account.positionValue?.toFixed(2)}</span>
+              <span className="card-unit">CNY</span>
+            </div>
+            <div className="card-profit">
+              <span className="profit-label">持仓盈亏</span>
+              <span className={`profit-value ${account.positionProfitLoss >= 0 ? 'rise' : 'fall'}`}>
+                {account.positionProfitLoss >= 0 ? '+' : ''}{account.positionProfitLoss?.toFixed(2)}
+              </span>
+            </div>
+          </div>
+          <div className="account-card">
+            <div className="card-icon today">
+              <TrendUpOutlined />
+            </div>
+            <div className="card-content">
+              <span className="card-label">当日盈亏</span>
+              <span className={`card-value ${account.todayProfitLoss >= 0 ? 'rise' : 'fall'}`}>
+                {account.todayProfitLoss >= 0 ? '+' : ''}{account.todayProfitLoss?.toFixed(2)}
+              </span>
               <span className="card-unit">CNY</span>
             </div>
           </div>

@@ -47,4 +47,14 @@ public class CapitalAccountDTO {
      * 总盈亏
      */
     private BigDecimal totalProfitLoss;
+
+    /**
+     * 当日盈亏
+     */
+    private BigDecimal todayProfitLoss;
+
+    /**
+     * 持仓盈亏
+     */
+    private BigDecimal positionProfitLoss;
 }

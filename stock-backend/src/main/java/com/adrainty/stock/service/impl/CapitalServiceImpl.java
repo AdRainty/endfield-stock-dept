@@ -44,13 +44,31 @@ public class CapitalServiceImpl implements CapitalService {
         BigDecimal available = AVAILABLE_CAPITAL.getOrDefault(key, BigDecimal.ZERO);
         BigDecimal frozen = FROZEN_CAPITAL.getOrDefault(key, BigDecimal.ZERO);
 
-        // 计算持仓市值
+        // 计算持仓市值和盈亏
         List<UserPosition> positions = userPositionMapper.findByUserIdAndExchangeId(userId, exchangeId);
-        BigDecimal positionValue = positions.stream()
-            .map(p -> p.getQuantity().multiply(p.getLatestPrice() != null ? p.getLatestPrice() : p.getCostPrice()))
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal positionValue = BigDecimal.ZERO;
+        BigDecimal totalProfitLoss = BigDecimal.ZERO;
+        BigDecimal todayProfitLoss = BigDecimal.ZERO;
 
-        BigDecimal totalProfitLoss = positions.stream()
+        for (UserPosition position : positions) {
+            BigDecimal latestPrice = position.getLatestPrice() != null ? position.getLatestPrice() : BigDecimal.ZERO;
+            BigDecimal costPrice = position.getCostPrice() != null ? position.getCostPrice() : BigDecimal.ZERO;
+            BigDecimal quantity = position.getQuantity() != null ? position.getQuantity() : BigDecimal.ZERO;
+
+            // 持仓市值
+            positionValue = positionValue.add(quantity.multiply(latestPrice));
+
+            // 持仓盈亏 = (最新价 - 成本价) * 数量
+            BigDecimal positionPL = latestPrice.subtract(costPrice).multiply(quantity);
+            totalProfitLoss = totalProfitLoss.add(positionPL);
+
+            // 当日盈亏：这里简化为当前持仓盈亏（实际应该对比昨日收盘价）
+            // 如果没有昨收数据，暂且用持仓盈亏作为当日盈亏
+            todayProfitLoss = todayProfitLoss.add(positionPL);
+        }
+
+        // 持仓盈亏 = 总盈亏（已实现 + 未实现）
+        BigDecimal positionProfitLoss = positions.stream()
             .map(UserPosition::getProfitLoss)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -61,6 +79,8 @@ public class CapitalServiceImpl implements CapitalService {
         dto.setPositionValue(positionValue);
         dto.setTotalAsset(available.add(positionValue));
         dto.setTotalProfitLoss(totalProfitLoss);
+        dto.setTodayProfitLoss(todayProfitLoss);
+        dto.setPositionProfitLoss(positionProfitLoss);
 
         return dto;
     }
