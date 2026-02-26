@@ -1622,10 +1622,10 @@ body {
 
 .trade-submit {
   margin-top: 8px;
-  height: 40px;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: var(--radius-md);
+  height: 32px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
   border: none !important;
 }
 
