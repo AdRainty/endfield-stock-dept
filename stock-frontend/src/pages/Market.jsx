@@ -242,7 +242,7 @@ const Market = () => {
           <div className="panel-header">
             <span className="panel-title">
               <span className="title-dot"></span>
-              委托档口 / ORDER BOOK
+              五档行情 / ORDER BOOK
             </span>
             <span className="panel-subtitle">
               {selectedInstrument || '-'}
@@ -251,64 +251,45 @@ const Market = () => {
 
           {orderBook ? (
             <div className="orderbook-content">
-              {/* 当前价格 */}
-              <div className="current-price-display">
-                <div className="price-main">
-                  <span className={`price-big ${orderBook.changePercent >= 0 ? 'rise' : 'fall'}`}>
-                    {orderBook.latestPrice?.toFixed(2)}
-                  </span>
-                  <span className="price-currency">CNY</span>
-                </div>
-                <div className={`price-change ${orderBook.changePercent >= 0 ? 'rise' : 'fall'}`}>
-                  <span className="change-value">
-                    {orderBook.changeAmount >= 0 ? '+' : ''}{orderBook.changeAmount?.toFixed(2)}
-                  </span>
-                  <span className="change-percent">
-                    {orderBook.changePercent >= 0 ? '+' : ''}{orderBook.changePercent?.toFixed(2)}%
-                  </span>
-                </div>
+              {/* 卖盘档口 - 倒序显示 卖 5 到卖 1 */}
+              <div className="orderbook-sells">
+                {Array.from({ length: 5 }).map((_, i) => {
+                  const ask = orderBook.asks?.[4 - i] || {};
+                  const level = 5 - i;
+                  return (
+                    <div key={`ask-${level}`} className="orderbook-row-simple">
+                      <span className="level-label">卖{level}</span>
+                      <span className={`price ask-price ${ask.price ? '' : 'empty'}`}>
+                        {ask.price?.toFixed(2) || '-'}
+                      </span>
+                      <span className={`qty ask-qty ${ask.quantity ? '' : 'empty'}`}>
+                        {ask.quantity?.toFixed(0) || '-'}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* 买卖档口表格 */}
-              <div className="orderbook-table">
-                <div className="orderbook-header">
-                  <span className="col-label">买价 / BID</span>
-                  <span className="col-label">数量</span>
-                  <span className="col-label">档位</span>
-                  <span className="col-label">数量</span>
-                  <span className="col-label">卖价 / ASK</span>
-                </div>
-                <div className="orderbook-rows">
-                  {Array.from({ length: 5 }).map((_, i) => {
-                    const bid = orderBook.bids?.[i] || {};
-                    const ask = orderBook.asks?.[i] || {};
-                    const level = i + 1;
-                    return (
-                      <div key={i} className="orderbook-row" style={{ '--level': level }}>
-                        <span className={`cell bid-price ${bid.price ? '' : 'empty'}`}>
-                          {bid.price?.toFixed(2) || '-'}
-                        </span>
-                        <span className={`cell bid-qty ${bid.quantity ? '' : 'empty'}`}>
-                          {bid.quantity?.toFixed(0) || '-'}
-                        </span>
-                        <span className="cell level">{level}</span>
-                        <span className={`cell ask-qty ${ask.quantity ? '' : 'empty'}`}>
-                          {ask.quantity?.toFixed(0) || '-'}
-                        </span>
-                        <span className={`cell ask-price ${ask.price ? '' : 'empty'}`}>
-                          {ask.price?.toFixed(2) || '-'}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+              {/* 分隔线 */}
+              <div className="orderbook-divider"></div>
 
-              {/* 深度条装饰 */}
-              <div className="depth-indicator">
-                <div className="depth-bid" style={{ width: `${Math.random() * 60 + 20}%` }}></div>
-                <div className="depth-center"></div>
-                <div className="depth-ask" style={{ width: `${Math.random() * 60 + 20}%` }}></div>
+              {/* 买盘档口 - 买 1 到买 5 */}
+              <div className="orderbook-buys">
+                {Array.from({ length: 5 }).map((_, i) => {
+                  const bid = orderBook.bids?.[i] || {};
+                  const level = i + 1;
+                  return (
+                    <div key={`bid-${level}`} className="orderbook-row-simple">
+                      <span className="level-label">买{level}</span>
+                      <span className={`price bid-price ${bid.price ? '' : 'empty'}`}>
+                        {bid.price?.toFixed(2) || '-'}
+                      </span>
+                      <span className={`qty bid-qty ${bid.quantity ? '' : 'empty'}`}>
+                        {bid.quantity?.toFixed(0) || '-'}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ) : (

@@ -1402,154 +1402,72 @@ body {
   border-radius: var(--radius-sm);
 }
 
-/* 档口表格 */
-.orderbook-table {
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  min-height: 280px;
-  flex-shrink: 0;
-}
-
-.orderbook-header {
-  display: grid;
-  grid-template-columns: 1fr 80px 50px 80px 1fr;
-  gap: 8px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border-color);
-  margin-bottom: 8px;
-}
-
-.col-label {
-  font-size: 11px;
-  color: var(--text-tertiary);
-  text-align: center;
-  font-family: var(--font-mono);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-.col-label:first-child {
-  color: var(--color-rise);
-}
-
-.col-label:last-child {
-  color: var(--color-fall);
-}
-
-.orderbook-rows {
+/* 档口表格 - 新样式 */
+.orderbook-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  padding: 8px 0;
 }
 
-.orderbook-row {
+.orderbook-sells,
+.orderbook-buys {
+  display: flex;
+  flex-direction: column;
+}
+
+.orderbook-sells {
+  flex-direction: column-reverse;
+}
+
+.orderbook-row-simple {
   display: grid;
-  grid-template-columns: 1fr 80px 50px 80px 1fr;
+  grid-template-columns: 50px 1fr 80px;
   gap: 8px;
-  padding: 10px 0;
+  padding: 8px 16px;
   font-family: var(--font-mono);
   font-size: 13px;
+  align-items: center;
   transition: background var(--transition-fast);
-  position: relative;
 }
 
-.orderbook-row::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: calc(var(--level) * 20%);
-  height: 100%;
-  background: linear-gradient(90deg, rgba(255, 71, 87, 0.08), transparent);
-  opacity: 0.5;
-  pointer-events: none;
+.orderbook-row-simple:hover {
+  background: rgba(255, 255, 255, 0.03);
 }
 
-.orderbook-row::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: calc(var(--level) * 20%);
-  height: 100%;
-  background: linear-gradient(270deg, rgba(46, 213, 115, 0.08), transparent);
-  opacity: 0.5;
-  pointer-events: none;
+.level-label {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 500;
 }
 
-.orderbook-row:hover {
-  background: rgba(255, 255, 255, 0.02);
+.price {
+  font-weight: 600;
+  text-align: right;
 }
 
-.cell {
-  text-align: center;
+.price.ask-price {
+  color: var(--color-fall);
+}
+
+.price.bid-price {
+  color: var(--color-rise);
+}
+
+.qty {
+  text-align: left;
   color: var(--text-secondary);
 }
 
-.cell.bid-price {
-  color: var(--color-rise);
-  font-weight: 600;
-  text-align: right;
-  padding-right: 8px;
+.orderbook-divider {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+  margin: 8px 16px;
 }
 
-.cell.ask-price {
-  color: var(--color-fall);
-  font-weight: 600;
-  text-align: left;
-  padding-left: 8px;
-}
-
-.cell.bid-qty {
-  text-align: right;
-  padding-right: 8px;
-}
-
-.cell.ask-qty {
-  text-align: left;
-  padding-left: 8px;
-}
-
-.cell.level {
-  color: var(--text-tertiary);
-  font-size: 11px;
-}
-
-.cell.empty {
-  color: var(--text-muted);
+.price.empty,
+.qty.empty {
   opacity: 0.3;
-}
-
-/* 深度指示器 */
-.depth-indicator {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 12px 20px;
-  border-top: 1px solid var(--border-color);
-  background: var(--color-bg-tertiary);
-}
-
-.depth-bid {
-  height: 4px;
-  background: linear-gradient(90deg, var(--color-rise), transparent);
-  border-radius: 2px;
-  transition: width var(--transition-base);
-}
-
-.depth-center {
-  width: 2px;
-  height: 12px;
-  background: var(--border-light);
-}
-
-.depth-ask {
-  height: 4px;
-  background: linear-gradient(270deg, var(--color-fall), transparent);
-  border-radius: 2px;
-  transition: width var(--transition-base);
 }
 
 /* 空状态 */
