@@ -1145,11 +1145,11 @@ body {
 }
 
 .panel-header {
-  height: 52px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 16px;
   background: var(--color-bg-tertiary);
   flex-shrink: 0;
 }
@@ -1164,11 +1164,11 @@ body {
 .panel-title {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 13px;
+  gap: 8px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
 }
 
 .title-dot {
@@ -1426,11 +1426,11 @@ body {
 
 .orderbook-row-simple {
   display: grid;
-  grid-template-columns: 50px 1fr 80px;
-  gap: 8px;
-  padding: 8px 16px;
+  grid-template-columns: 40px 1fr 70px;
+  gap: 6px;
+  padding: 6px 12px;
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 12px;
   align-items: center;
   transition: background var(--transition-fast);
 }
