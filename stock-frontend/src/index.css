@@ -1771,8 +1771,8 @@ body {
 
 .full-width :global(.ant-select-selector),
 .full-width-input :global(.ant-input-number) {
-  background: rgba(255, 255, 255, 0.03) !important;
-  border-color: rgba(255, 107, 53, 0.2) !important;
+  background: var(--color-bg-secondary) !important;
+  border-color: var(--border-color) !important;
   font-family: var(--font-mono) !important;
   color: var(--text-primary) !important;
 }
@@ -1786,6 +1786,7 @@ body {
 }
 
 .full-width-input :global(.ant-input-number-input) {
+  background: var(--color-bg-secondary) !important;
   color: var(--text-primary);
   font-family: var(--font-mono);
 }
