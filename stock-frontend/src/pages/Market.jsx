@@ -177,7 +177,7 @@ const Market = () => {
         </div>
       </div>
 
-      {/* 主要内容 */}
+      {/* 主要内容 - 三列布局：左侧品种列表 / 中间 K 线图表 / 右侧委托档口 */}
       <div className="market-content">
         {/* 左侧：品种列表 */}
         <div className="instruments-panel">
@@ -214,7 +214,7 @@ const Market = () => {
                     </div>
                   </div>
                   <div className="inst-footer">
-                    <span className="inst-vol">成交量：{inst.volume?.toLocaleString()}</span>
+                    <span className="inst-vol">量：{inst.volume?.toLocaleString()}</span>
                   </div>
                 </div>
               );
@@ -222,7 +222,22 @@ const Market = () => {
           </div>
         </div>
 
-        {/* 右侧：档口详情和 K 线图 */}
+        {/* 中间：K 线图表 */}
+        <div className="chart-panel">
+          {selectedExchange && selectedInstrument ? (
+            <KlineChart exchangeId={selectedExchange} instrumentCode={selectedInstrument} />
+          ) : (
+            <div className="empty-state">
+              <div className="empty-icon">
+                <LineChartOutlined />
+              </div>
+              <p className="empty-text">请选择交易品种查看图表</p>
+              <p className="empty-subtext">SELECT AN INSTRUMENT TO VIEW CHART</p>
+            </div>
+          )}
+        </div>
+
+        {/* 右侧：委托档口 */}
         <div className="orderbook-panel">
           <div className="panel-header">
             <span className="panel-title">
@@ -230,7 +245,7 @@ const Market = () => {
               委托档口 / ORDER BOOK
             </span>
             <span className="panel-subtitle">
-              {selectedInstrument || 'SELECT INSTRUMENT'}
+              {selectedInstrument || '-'}
             </span>
           </div>
 
@@ -301,14 +316,9 @@ const Market = () => {
               <div className="empty-icon">
                 <LineChartOutlined />
               </div>
-              <p className="empty-text">请选择交易品种查看档口数据</p>
-              <p className="empty-subtext">SELECT AN INSTRUMENT TO VIEW ORDER BOOK</p>
+              <p className="empty-text">请选择交易品种</p>
+              <p className="empty-subtext">SELECT AN INSTRUMENT</p>
             </div>
-          )}
-
-          {/* K 线图表 */}
-          {selectedExchange && selectedInstrument && (
-            <KlineChart exchangeId={selectedExchange} instrumentCode={selectedInstrument} />
           )}
         </div>
       </div>

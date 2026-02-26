@@ -1097,20 +1097,46 @@ body {
 .market-content {
   flex: 1;
   display: grid;
-  grid-template-columns: 400px 1fr;
-  gap: 24px;
+  grid-template-columns: 280px 1fr 320px;
+  gap: 16px;
   overflow: hidden;
 }
 
 /* 面板通用样式 */
 .instruments-panel,
-.orderbook-panel {
+.orderbook-panel,
+.chart-panel {
   background: var(--color-bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.instruments-panel {
+  width: 100%;
+}
+
+.chart-panel {
   flex: 1;
+}
+
+.orderbook-panel {
+  width: 100%;
+  height: 100%;
+}
+
+.orderbook-panel .panel-header {
+  background: var(--color-bg-tertiary);
+}
+
+.orderbook-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
   min-height: 0;
 }
 
@@ -1124,13 +1150,11 @@ body {
   flex-shrink: 0;
 }
 
-.orderbook-content {
+.panel-content-wrapper {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  flex: 1;
-}
-  border-bottom: 1px solid var(--border-color);
+  overflow: hidden;
 }
 
 .panel-title {
@@ -1313,13 +1337,6 @@ body {
 }
 
 /* 档口面板 */
-.orderbook-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
 .current-price-display {
   padding: 24px;
   text-align: center;

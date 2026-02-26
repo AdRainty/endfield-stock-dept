@@ -266,7 +266,9 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
           border: 1px solid #30363d;
           border-radius: 8px;
           padding: 16px;
-          margin-top: 16px;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
         }
 
         .kline-header {
