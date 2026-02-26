@@ -1,17 +1,22 @@
 package com.adrainty.stock.util;
 
-import com.adrainty.stock.config.WechatMpProperties;
+import com.adrainty.stock.exception.BusinessException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
+import me.chanjar.weixin.mp.api.WxMpMessageRouter;
 import me.chanjar.weixin.mp.api.WxMpService;
+import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
+import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
 import me.chanjar.weixin.mp.bean.result.WxMpQrCodeTicket;
-import me.chanjar.weixin.mp.bean.result.WxMpUser;
+import me.chanjar.weixin.mp.config.WxMpConfigStorage;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.io.Serial;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -26,18 +31,32 @@ import java.util.concurrent.TimeUnit;
 public class WechatUtil {
 
     private final WxMpService wxMpService;
-    private final WechatMpProperties properties;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public WechatUtil(WxMpService wxMpService, WechatMpProperties properties, RedisTemplate<String, Object> redisTemplate) {
+    private final WxMpMessageRouter wxMpMessageRouter;
+
+    public WechatUtil(WxMpService wxMpService,
+                      RedisTemplate<String, Object> redisTemplate,
+                      WxMpMessageRouter wxMpMessageRouter) {
         this.wxMpService = wxMpService;
-        this.properties = properties;
         this.redisTemplate = redisTemplate;
+        this.wxMpMessageRouter = wxMpMessageRouter;
     }
 
     private static final String REDIS_QR_PREFIX = "wx:qrcode:";
     private static final long QR_EXPIRE_MINUTES = 5;
-    private static final long CODE_EXPIRE_MINUTES = 10;
+
+    /**
+     * 微信公众号验证
+     */
+    public static final String SIGNATURE = "signature";
+    public static final String TIMESTAMP = "timestamp";
+    public static final String NONCE = "nonce";
+    public static final String ECHO_STR = "echostr";
+    public static final String MSG_SIGNATURE = "msg_signature";
+    public static final String ENCRYPTED_TYPE = "encrypt_type";
+    public static final String ENCRYPTED_TYPE_RAW = "raw";
+
 
     /**
      * 生成微信二维码登录场景（临时二维码）
@@ -47,26 +66,24 @@ public class WechatUtil {
     public String generateQrCodeScene() {
         try {
             // 生成临时二维码 scene_id
-            String sceneStr = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
-            int sceneId = Math.abs(sceneStr.hashCode());
-            String redisKey = REDIS_QR_PREFIX + sceneStr;
+            String sceneStr = UUID.randomUUID().toString().replace("-", "");
 
             // 获取二维码服务
             var qrcodeService = wxMpService.getQrcodeService();
 
             // 使用 WxJava 生成临时二维码 ticket
-            WxMpQrCodeTicket qrCodeTicket = qrcodeService.qrCodeCreateTmpTicket(sceneId, (int) QR_EXPIRE_MINUTES * 60);
+            WxMpQrCodeTicket qrCodeTicket = qrcodeService.qrCodeCreateTmpTicket(sceneStr, (int) QR_EXPIRE_MINUTES * 60);
             String ticket = qrCodeTicket.getTicket();
+            String redisKey = REDIS_QR_PREFIX + ticket;
 
             // 获取二维码图片 URL（这是微信官方的二维码图片）
             String pictureUrl = qrcodeService.qrCodePictureUrl(ticket);
 
-            log.info("生成微信二维码，sceneId={}, ticket={}, pictureUrl={}", sceneId, ticket, pictureUrl);
+            log.info("生成微信二维码，sceneId={}, ticket={}, pictureUrl={}", sceneStr, ticket, pictureUrl);
 
             // 存储场景信息到 Redis
             WxQrCodeScene scene = new WxQrCodeScene();
             scene.setScene(sceneStr);
-            scene.setSceneId(sceneId);
             scene.setTicket(ticket);
             scene.setQrCodeUrl(pictureUrl);  // 直接返回微信官方的二维码图片 URL
             scene.setStatus("WAIT");
@@ -111,124 +128,49 @@ public class WechatUtil {
      * 微信回调接口处理
      * 微信会携带 code 和 state 参数回调此接口
      *
-     * @param code 微信授权码
-     * @param state 场景字符串
      * @return 用户信息
      */
-    public WxQrCodeScene handleWxCallback(String code, String state) {
+    public String handleWxCallback(HttpServletRequest request) {
+        String timestamp = request.getParameter(WechatUtil.TIMESTAMP);
+        String nonce = request.getParameter(WechatUtil.NONCE);
+        String encryptType = StringUtils.defaultIfBlank(request.getParameter(ENCRYPTED_TYPE), ENCRYPTED_TYPE_RAW);
+        WxMpConfigStorage wxMpConfigStorage = wxMpService.getWxMpConfigStorage();
+        WxMpXmlMessage inMessage;
+
         try {
-            log.info("微信回调，code={}, state={}", code, state);
-
-            // 使用 code 换取 access_token 和 openid
-            String accessToken = wxMpService.getOauth2Service().getAccessToken(code);
-            String openid = wxMpService.getOauth2Service().getOpenId(accessToken);
-
-            if (openid == null) {
-                log.error("获取 openid 失败");
-                return null;
+            if (ENCRYPTED_TYPE_RAW.equals(encryptType)) {
+                inMessage = WxMpXmlMessage.fromXml(request.getInputStream());
+            } else {
+                String msgSignature = request.getParameter(MSG_SIGNATURE);
+                inMessage = WxMpXmlMessage.fromEncryptedXml(
+                        request.getInputStream(), wxMpConfigStorage, timestamp, nonce, msgSignature);
             }
-
-            // 使用 openid 获取用户完整信息（需要公众号已认证且用户已关注）
-            WxMpUser user = null;
-            try {
-                user = wxMpService.getUserService().userInfo(openid);
-                log.info("通过 openid 获取用户信息成功：{}", user.getNickname());
-            } catch (WxErrorException e) {
-                log.warn("通过 openid 获取用户信息失败（可能是临时二维码未关注用户），使用 OAuth2 方式获取：{}", e.getError().getErrorMsg());
-                // 降级：使用 OAuth2 方式获取用户信息
-                user = wxMpService.getOauth2Service().getUserInfo(accessToken, code);
-            }
-
-            if (user == null) {
-                log.error("获取用户信息失败");
-                return null;
-            }
-
-            // 查询场景信息
-            String redisKey = REDIS_QR_PREFIX + state;
-            WxQrCodeScene scene = (WxQrCodeScene) redisTemplate.opsForValue().get(redisKey);
-
-            if (scene != null) {
-                scene.setStatus("SUCCESS");
-                scene.setOpenid(user.getOpenId());
-                scene.setNickname(user.getNickname());
-                scene.setAvatar(user.getHeadImgUrl());
-
-                // 延长过期时间，给用户登录的时间
-                redisTemplate.opsForValue().set(redisKey, scene, 10, TimeUnit.MINUTES);
-
-                log.info("微信扫码成功，openid={}, nickname={}", user.getOpenId(), scene.getNickname());
-                return scene;
-            }
-
-            return null;
-        } catch (WxErrorException e) {
-            log.error("处理微信回调失败：{}", e.getError().getErrorMsg(), e);
-            return null;
+        } catch (IOException e) {
+            log.error("Parse encrypted xml error: ", e);
+            throw new BusinessException("第三方服务错误");
         }
+
+        WxMpXmlOutMessage outMessage = wxMpMessageRouter.route(inMessage);
+        if (outMessage == null) {
+            //为null，说明路由配置有问题，需要注意
+            log.error("Route error: outMessage is null");
+            throw new BusinessException("微信服务器配置错误");
+        }
+        return ENCRYPTED_TYPE_RAW.equals(encryptType) ?
+                outMessage.toXml() :
+                outMessage.toEncryptedXml(wxMpConfigStorage);
     }
 
     /**
-     * 使用 code 换取 access_token 和 openid（供备用登录接口使用）
+     * 检查微信签名
      *
-     * @param code 微信授权码
-     * @return access_token 和 openid
+     * @param timestamp 时间戳
+     * @param nonce     随机字符串
+     * @param signature 签名
      */
-    public Map<String, String> getAccessTokenByCode(String code) {
-        try {
-            // 使用 code 换取 access_token
-            String accessToken = wxMpService.getOauth2Service().getAccessToken(code);
-            String openid = wxMpService.getOauth2Service().getOpenId(accessToken);
-
-            if (openid == null) {
-                log.error("获取 openid 失败");
-                return new HashMap<>();
-            }
-
-            // 使用 openid 获取用户完整信息
-            WxMpUser user = null;
-            try {
-                user = wxMpService.getUserService().userInfo(openid);
-                log.info("通过 openid 获取用户信息成功：{}", user.getNickname());
-            } catch (WxErrorException e) {
-                log.warn("通过 openid 获取用户信息失败，使用 OAuth2 方式：{}", e.getError().getErrorMsg());
-                // 降级：使用 OAuth2 方式获取用户信息
-                user = wxMpService.getOauth2Service().getUserInfo(accessToken, code);
-            }
-
-            if (user == null) {
-                return new HashMap<>();
-            }
-
-            Map<String, String> result = new HashMap<>();
-            result.put("access_token", accessToken);
-            result.put("openid", user.getOpenId());
-            result.put("nickname", user.getNickname());
-            result.put("avatar", user.getHeadImgUrl());
-
-            log.info("获取 access_token 成功，openid={}", user.getOpenId());
-            return result;
-        } catch (WxErrorException e) {
-            log.error("获取 access_token 失败：{}", e.getError().getErrorMsg(), e);
-            return new HashMap<>();
-        }
-    }
-
-    /**
-     * 模拟扫码授权（开发环境使用）
-     */
-    public void mockScanAuthorize(String scene, String openid, String nickname, String avatar) {
-        String redisKey = REDIS_QR_PREFIX + scene;
-        WxQrCodeScene wxScene = (WxQrCodeScene) redisTemplate.opsForValue().get(redisKey);
-
-        if (wxScene != null) {
-            wxScene.setStatus("SUCCESS");
-            wxScene.setOpenid(openid);
-            wxScene.setNickname(nickname);
-            wxScene.setAvatar(avatar);
-
-            redisTemplate.opsForValue().set(redisKey, wxScene, 10, TimeUnit.MINUTES);
-            log.info("模拟扫码授权：scene={}, openid={}", scene, openid);
+    public void checkSignature(String timestamp, String nonce, String signature) {
+        if (!wxMpService.checkSignature(timestamp, nonce, signature)) {
+            throw new BusinessException("微信签名验证失败");
         }
     }
 
@@ -237,17 +179,14 @@ public class WechatUtil {
      */
     @Data
     public static class WxQrCodeScene implements java.io.Serializable {
+
+        @Serial
         private static final long serialVersionUID = 1L;
 
         /**
          * 场景字符串（state）
          */
         private String scene;
-
-        /**
-         * 场景 ID（scene_id）
-         */
-        private Integer sceneId;
 
         /**
          * 二维码 ticket

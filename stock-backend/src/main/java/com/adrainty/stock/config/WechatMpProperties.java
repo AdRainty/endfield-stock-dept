@@ -39,4 +39,9 @@ public class WechatMpProperties {
      * OAuth2 回调地址
      */
     private String redirectUri;
+
+    /**
+     * Redis 前缀
+     */
+    private String redisPrefix = "wx:";
 }

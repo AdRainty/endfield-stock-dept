@@ -55,7 +55,10 @@ const Login = () => {
             navigate("/");
           } else if (status === "EXPIRED") {
             clearInterval(timer);
-            message.error("二维码已过期，请刷新重试");
+            message.error("二维码已过期，正在刷新...");
+            // 自动刷新二维码
+            setHasInited(false);
+            getQrCode();
           }
         }
       } catch (error) {
