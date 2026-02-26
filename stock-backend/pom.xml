@@ -100,11 +100,10 @@
             <version>${redisson.version}</version>
         </dependency>
 
-        <!-- Sa-Token Redis 集成 -->
+        <!-- Spring Data Redis -->
         <dependency>
-            <groupId>cn.dev33</groupId>
-            <artifactId>sa-token-dao-redis-jackson</artifactId>
-            <version>${sa-token.version}</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
         <!-- HttpClient 用于调用微信 API -->
