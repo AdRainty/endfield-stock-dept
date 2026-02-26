@@ -277,9 +277,9 @@ const Market = () => {
                 >
                   <div className="inst-header">
                     <span className="inst-code">{inst.instrumentCode}</span>
-                    <Tag className={`inst-tag type-${inst.instrumentCode?.charAt(0)}`}>
+                    <span className={`inst-name type-${inst.instrumentCode?.charAt(0)}`}>
                       {inst.name}
-                    </Tag>
+                    </span>
                   </div>
                   <div className="inst-body">
                     <div className="inst-price">
