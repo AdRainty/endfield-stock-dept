@@ -39,6 +39,15 @@ public class PositionServiceImpl implements PositionService {
     }
 
     @Override
+    public List<PositionDTO> getAllUserPositions(Long userId) {
+        List<UserPosition> positions = userPositionMapper.findByUserId(userId);
+        return positions.stream()
+            .filter(p -> p.getQuantity().compareTo(BigDecimal.ZERO) > 0)
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+    }
+
+    @Override
     public PositionDTO getPosition(Long userId, Long exchangeId, String instrumentCode) {
         UserPosition position = userPositionMapper.findByUserIdAndExchangeIdAndInstrumentCode(userId, exchangeId, instrumentCode);
         return position != null ? convertToDTO(position) : null;

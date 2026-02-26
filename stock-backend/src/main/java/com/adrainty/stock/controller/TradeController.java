@@ -60,6 +60,17 @@ public class TradeController {
         List<PositionDTO> positions = positionService.getUserPositions(userId, exchangeId);
         return ResponseEntity.ok(GlobalExceptionHandler.ApiResult.success(positions));
     }
+
+    /**
+     * 获取所有持仓列表
+     */
+    @Operation(summary = "获取所有持仓列表", description = "获取用户在所有交易所的持仓列表")
+    @GetMapping("/positions")
+    public ResponseEntity<GlobalExceptionHandler.ApiResult<List<PositionDTO>>> getAllPositions() {
+        Long userId = StpUtil.getLoginIdAsLong();
+        List<PositionDTO> positions = positionService.getAllUserPositions(userId);
+        return ResponseEntity.ok(GlobalExceptionHandler.ApiResult.success(positions));
+    }
     
     /**
      * 获取档口数据
