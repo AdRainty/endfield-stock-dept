@@ -24,6 +24,15 @@ mybatis-plus:
     # 开发环境开启 SQL 日志
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
+app:
+  # 新用户初始资金
+  initial-capital: 100000
+  # 微信配置
+  wechat:
+    app-id: ${WECHAT_APP_ID:}
+    app-secret: ${WECHAT_APP_SECRET:}
+    redirect-uri: ${WECHAT_REDIRECT_URI:http://localhost:8081/api/auth/wx-callback}
+
 logging:
   level:
     root: INFO

@@ -86,10 +86,3 @@ app:
       id: 2
       name: 武陵
       code: WULING
-  # 新用户初始资金
-  initial-capital: 100000
-  # 微信配置
-  wechat:
-    app-id: ${WECHAT_APP_ID:}
-    app-secret: ${WECHAT_APP_SECRET:}
-    redirect-uri: ${WECHAT_REDIRECT_URI:http://localhost:8081/api/auth/wx-callback}
