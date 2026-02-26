@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 管理员服务实现类
@@ -42,7 +41,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public void allocateCapital(Long adminUserId, Long targetUserId, Long exchangeId,
-                                 BigDecimal amount, String reason) {
+                                BigDecimal amount, String reason) {
         // 验证管理员权限
         User admin = userMapper.selectById(adminUserId);
         if (admin == null) {
@@ -61,41 +60,30 @@ public class AdminServiceImpl implements AdminService {
 
         // 执行分配
         capitalService.addCapital(targetUserId, exchangeId, amount,
-            "ALLOC_" + UUID.randomUUID().toString().substring(0, 8),
-            "管理员分配：" + reason);
+                "ALLOC_" + UUID.randomUUID().toString().substring(0, 8),
+                "管理员分配：" + reason);
 
         // 记录分配记录
-        AllocationRecord record = new AllocationRecord();
-        record.setAllocationNo("ALLOC_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16));
-        record.setUserId(targetUserId);
-        record.setExchangeId(exchangeId);
-        record.setAmount(amount);
-        record.setBalanceAfter(capitalService.getAvailableCapital(targetUserId, exchangeId));
-        record.setReason(reason);
-        record.setAdminUserId(adminUserId);
-        record.setOperateTime(LocalDateTime.now());
+        AllocationRecord recordData = new AllocationRecord();
+        recordData.setAllocationNo("ALLOC_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16));
+        recordData.setUserId(targetUserId);
+        recordData.setExchangeId(exchangeId);
+        recordData.setAmount(amount);
+        recordData.setBalanceAfter(capitalService.getAvailableCapital(targetUserId, exchangeId));
+        recordData.setReason(reason);
+        recordData.setAdminUserId(adminUserId);
+        recordData.setOperateTime(LocalDateTime.now());
 
-        allocationRecordMapper.insert(record);
+        allocationRecordMapper.insert(recordData);
 
         log.info("管理员分配原能：adminUserId={}, targetUserId={}, exchangeId={}, amount={}, reason={}",
-            adminUserId, targetUserId, exchangeId, amount, reason);
+                adminUserId, targetUserId, exchangeId, amount, reason);
     }
 
     @Override
     public List<Map<String, Object>> getUserList() {
         List<User> users = userMapper.selectList(null);
-        return users.stream().map(u -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", u.getId());
-            map.put("wechatOpenid", u.getWechatOpenid());
-            map.put("nickname", u.getNickname());
-            map.put("avatar", u.getAvatar());
-            map.put("role", u.getRole().getCode());
-            map.put("status", u.getStatus());
-            map.put("createdAt", u.getCreatedAt());
-            map.put("lastLoginAt", u.getLastLoginAt());
-            return map;
-        }).collect(Collectors.toList());
+        return users.stream().map(AdminServiceImpl::buildUserData).toList();
     }
 
     @Override
@@ -105,6 +93,10 @@ public class AdminServiceImpl implements AdminService {
             throw BusinessException.of("用户不存在");
         }
 
+        return buildUserData(user);
+    }
+
+    private static Map<String, Object> buildUserData(User user) {
         Map<String, Object> result = new HashMap<>();
         result.put("id", user.getId());
         result.put("wechatOpenid", user.getWechatOpenid());
@@ -141,7 +133,7 @@ public class AdminServiceImpl implements AdminService {
             map.put("adminUserId", r.getAdminUserId());
             map.put("operateTime", r.getOperateTime());
             return map;
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
     @Override
@@ -157,8 +149,8 @@ public class AdminServiceImpl implements AdminService {
         // 分配记录统计
         List<AllocationRecord> allRecords = allocationRecordMapper.selectList(null);
         BigDecimal totalAllocated = allRecords.stream()
-            .map(AllocationRecord::getAmount)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(AllocationRecord::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         stats.put("totalAllocated", totalAllocated);
         stats.put("allocationCount", allRecords.size());
 
@@ -188,12 +180,12 @@ public class AdminServiceImpl implements AdminService {
             Map<String, Object> map = new HashMap<>();
             map.put("id", e.getId());
             map.put("name", e.getName());
-            map.put("code", e.getCode());
+            map.put("code", e.getExchangeCode());
             map.put("status", e.getStatus());
             map.put("description", e.getDescription());
             map.put("createdAt", e.getCreatedAt());
             return map;
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
     @Override
@@ -201,7 +193,7 @@ public class AdminServiceImpl implements AdminService {
     public void addExchange(String name, String code, String description) {
         // 检查代码是否已存在
         List<Exchange> existing = exchangeMapper.selectList(null);
-        if (existing.stream().anyMatch(e -> e.getExchangeCode().equals(code))) {
+        if (existing.stream().anyMatch(e -> code.equals(e.getExchangeCode()))) {
             throw BusinessException.of("交易所代码已存在");
         }
 
@@ -255,8 +247,8 @@ public class AdminServiceImpl implements AdminService {
             map.put("id", i.getId());
             map.put("exchangeId", i.getExchangeId());
             map.put("exchangeName", i.getExchangeId() != null ?
-                Optional.ofNullable(exchangeMapper.selectById(i.getExchangeId()))
-                    .map(Exchange::getName).orElse("未知") : "未知");
+                    Optional.ofNullable(exchangeMapper.selectById(i.getExchangeId()))
+                            .map(Exchange::getName).orElse("未知") : "未知");
             map.put("instrumentCode", i.getInstrumentCode());
             map.put("name", i.getName());
             map.put("type", i.getType() != null ? i.getType() : "STOCK");
@@ -264,7 +256,7 @@ public class AdminServiceImpl implements AdminService {
             map.put("currentPrice", i.getCurrentPrice());
             map.put("createdAt", i.getCreatedAt());
             return map;
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
     @Override
@@ -293,13 +285,13 @@ public class AdminServiceImpl implements AdminService {
 
         instrumentMapper.insert(instrument);
         log.info("添加品种：exchangeId={}, instrumentCode={}, name={}, type={}",
-            exchangeId, instrumentCode, name, type);
+                exchangeId, instrumentCode, name, type);
     }
 
     @Override
     @Transactional
     public void updateInstrument(Long instrumentId, Long exchangeId, String instrumentCode,
-                                  String name, String type) {
+                                 String name, String type) {
         Instrument instrument = instrumentMapper.selectById(instrumentId);
         if (instrument == null) {
             throw BusinessException.of("品种不存在");
@@ -312,7 +304,7 @@ public class AdminServiceImpl implements AdminService {
         instrumentMapper.updateById(instrument);
 
         log.info("更新品种：id={}, exchangeId={}, instrumentCode={}, name={}, type={}",
-            instrumentId, exchangeId, instrumentCode, name, type);
+                instrumentId, exchangeId, instrumentCode, name, type);
     }
 
     @Override
