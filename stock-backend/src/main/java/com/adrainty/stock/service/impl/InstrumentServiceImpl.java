@@ -2,7 +2,7 @@ package com.adrainty.stock.service.impl;
 
 import com.adrainty.stock.dto.InstrumentDTO;
 import com.adrainty.stock.entity.Instrument;
-import com.adrainty.stock.repository.InstrumentRepository;
+import com.adrainty.stock.mapper.InstrumentMapper;
 import com.adrainty.stock.service.InstrumentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 /**
  * 品种服务实现类
- * 
+ *
  * @author adrainty
  * @since 2026-02-26
  */
@@ -24,27 +24,27 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class InstrumentServiceImpl implements InstrumentService, CommandLineRunner {
-    
-    private final InstrumentRepository instrumentRepository;
-    
+
+    private final InstrumentMapper instrumentMapper;
+
     @Override
     public List<InstrumentDTO> getAllInstruments() {
-        List<Instrument> instruments = instrumentRepository.findAll();
+        List<Instrument> instruments = instrumentMapper.selectList(null);
         return instruments.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
-    
+
     @Override
     public List<InstrumentDTO> getByExchangeId(Long exchangeId) {
-        List<Instrument> instruments = instrumentRepository.findByExchangeId(exchangeId);
+        List<Instrument> instruments = instrumentMapper.findByExchangeId(exchangeId);
         return instruments.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
-    
+
     @Override
     public InstrumentDTO getByCode(String instrumentCode) {
-        Instrument instrument = instrumentRepository.findByInstrumentCode(instrumentCode).orElse(null);
+        Instrument instrument = instrumentMapper.findByInstrumentCode(instrumentCode);
         return instrument != null ? convertToDTO(instrument) : null;
     }
-    
+
     @Override
     @Transactional
     public void initInstruments() {
@@ -53,18 +53,19 @@ public class InstrumentServiceImpl implements InstrumentService, CommandLineRunn
         initInstrument("VL_MATERIAL", "材料调度券", 1L, 50.00);
         initInstrument("VL_DATA", "数据调度券", 1L, 75.00);
         initInstrument("VL_TECH", "技术调度券", 1L, 120.00);
-        
+
         // 武陵交易所品种 (exchange_id = 2)
         initInstrument("WL_ENERGY", "能源调度券", 2L, 100.00);
         initInstrument("WL_MATERIAL", "材料调度券", 2L, 50.00);
         initInstrument("WL_DATA", "数据调度券", 2L, 75.00);
         initInstrument("WL_TECH", "技术调度券", 2L, 120.00);
-        
+
         log.info("初始化品种数据完成");
     }
-    
+
     private void initInstrument(String code, String name, Long exchangeId, double price) {
-        if (!instrumentRepository.existsByInstrumentCode(code)) {
+        Instrument existing = instrumentMapper.findByInstrumentCode(code);
+        if (existing == null) {
             Instrument instrument = new Instrument();
             instrument.setInstrumentCode(code);
             instrument.setName(name);
@@ -79,34 +80,34 @@ public class InstrumentServiceImpl implements InstrumentService, CommandLineRunn
             instrument.setVolume(0L);
             instrument.setTurnover(BigDecimal.ZERO);
             instrument.setStatus(1);
-            instrumentRepository.save(instrument);
+            instrumentMapper.insert(instrument);
             log.info("初始化品种：{} - {}", code, name);
         }
     }
-    
+
     @Override
     @Transactional
     public void updatePrice(Instrument instrument, double newPrice) {
         BigDecimal price = BigDecimal.valueOf(newPrice);
         instrument.setCurrentPrice(price);
-        
+
         if (instrument.getHighPrice() == null || price.compareTo(instrument.getHighPrice()) > 0) {
             instrument.setHighPrice(price);
         }
         if (instrument.getLowPrice() == null || price.compareTo(instrument.getLowPrice()) < 0) {
             instrument.setLowPrice(price);
         }
-        
+
         BigDecimal changeAmount = price.subtract(instrument.getPrevClosePrice());
         BigDecimal changePercent = changeAmount.divide(instrument.getPrevClosePrice(), 4, BigDecimal.ROUND_HALF_UP)
             .multiply(BigDecimal.valueOf(100));
-        
+
         instrument.setChangeAmount(changeAmount);
         instrument.setChangePercent(changePercent);
-        
-        instrumentRepository.save(instrument);
+
+        instrumentMapper.updateById(instrument);
     }
-    
+
     private InstrumentDTO convertToDTO(Instrument instrument) {
         InstrumentDTO dto = new InstrumentDTO();
         dto.setId(instrument.getId());
@@ -125,7 +126,7 @@ public class InstrumentServiceImpl implements InstrumentService, CommandLineRunn
         dto.setStatus(instrument.getStatus());
         return dto;
     }
-    
+
     @Override
     public void run(String... args) {
         initInstruments();

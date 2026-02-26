@@ -1,6 +1,7 @@
 package com.adrainty.stock.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,61 +10,60 @@ import java.time.LocalDateTime;
 
 /**
  * 管理员分配记录实体类
- * 
+ *
  * @author adrainty
  * @since 2026-02-26
  */
 @Getter
 @Setter
-@Entity
-@Table(name = "allocation_record")
+@TableName("allocation_record")
 public class AllocationRecord extends BaseEntity {
-    
+
     /**
      * 分配单号
      */
-    @Column(name = "allocation_no", unique = true, length = 32, nullable = false)
+    @TableField("allocation_no")
     private String allocationNo;
-    
+
     /**
      * 目标用户 ID
      */
-    @Column(name = "user_id", nullable = false)
+    @TableField("user_id")
     private Long userId;
-    
+
     /**
      * 交易所 ID
      */
-    @Column(name = "exchange_id", nullable = false)
+    @TableField("exchange_id")
     private Long exchangeId;
-    
+
     /**
      * 分配金额
      */
-    @Column(name = "amount", precision = 20, scale = 2, nullable = false)
+    @TableField("amount")
     private BigDecimal amount;
-    
+
     /**
      * 分配后余额
      */
-    @Column(name = "balance_after", precision = 20, scale = 2, nullable = false)
+    @TableField("balance_after")
     private BigDecimal balanceAfter;
-    
+
     /**
      * 分配原因
      */
-    @Column(name = "reason", length = 255)
+    @TableField("reason")
     private String reason;
-    
+
     /**
      * 操作管理员 ID
      */
-    @Column(name = "admin_user_id", nullable = false)
+    @TableField("admin_user_id")
     private Long adminUserId;
-    
+
     /**
      * 操作时间
      */
-    @Column(name = "operate_time")
+    @TableField("operate_time")
     private LocalDateTime operateTime;
 }

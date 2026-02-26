@@ -1,6 +1,7 @@
 package com.adrainty.stock.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,73 +10,72 @@ import java.time.LocalDateTime;
 
 /**
  * 资金流水实体类
- * 
+ *
  * @author adrainty
  * @since 2026-02-26
  */
 @Getter
 @Setter
-@Entity
-@Table(name = "capital_flow")
+@TableName("capital_flow")
 public class CapitalFlow extends BaseEntity {
-    
+
     /**
      * 流水号
      */
-    @Column(name = "flow_no", unique = true, length = 32, nullable = false)
+    @TableField("flow_no")
     private String flowNo;
-    
+
     /**
      * 用户 ID
      */
-    @Column(name = "user_id", nullable = false)
+    @TableField("user_id")
     private Long userId;
-    
+
     /**
      * 交易所 ID
      */
-    @Column(name = "exchange_id", nullable = false)
+    @TableField("exchange_id")
     private Long exchangeId;
-    
+
     /**
-     * 流水类型：DEPOSIT-入金 WITHDRAW-出钱 TRADE-交易分配-分配
+     * 流水类型：DEPOSIT-入金 WITHDRAW-出钱 TRADE-交易分配 - 分配
      */
-    @Column(name = "flow_type", length = 20, nullable = false)
+    @TableField("flow_type")
     private String flowType;
-    
+
     /**
      * 变动金额（正数为收入，负数为支出）
      */
-    @Column(name = "amount", precision = 20, scale = 2, nullable = false)
+    @TableField("amount")
     private BigDecimal amount;
-    
+
     /**
      * 变动后余额
      */
-    @Column(name = "balance_after", precision = 20, scale = 2, nullable = false)
+    @TableField("balance_after")
     private BigDecimal balanceAfter;
-    
+
     /**
      * 关联业务单号（订单号、交易流水号等）
      */
-    @Column(name = "ref_no", length = 32)
+    @TableField("ref_no")
     private String refNo;
-    
+
     /**
      * 备注
      */
-    @Column(name = "remark", length = 255)
+    @TableField("remark")
     private String remark;
-    
+
     /**
      * 操作时间
      */
-    @Column(name = "operate_time")
+    @TableField("operate_time")
     private LocalDateTime operateTime;
-    
+
     /**
      * 操作人 ID（管理员操作时填写）
      */
-    @Column(name = "operator_id")
+    @TableField("operator_id")
     private Long operatorId;
 }

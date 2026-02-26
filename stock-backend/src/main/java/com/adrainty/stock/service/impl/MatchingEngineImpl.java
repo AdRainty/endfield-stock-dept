@@ -6,9 +6,9 @@ import com.adrainty.stock.entity.Order;
 import com.adrainty.stock.entity.TradeRecord;
 import com.adrainty.stock.enums.OrderStatus;
 import com.adrainty.stock.enums.OrderType;
-import com.adrainty.stock.repository.InstrumentRepository;
-import com.adrainty.stock.repository.OrderRepository;
-import com.adrainty.stock.repository.TradeRecordRepository;
+import com.adrainty.stock.mapper.InstrumentMapper;
+import com.adrainty.stock.mapper.OrderMapper;
+import com.adrainty.stock.mapper.TradeRecordMapper;
 import com.adrainty.stock.service.OrderBook;
 import com.adrainty.stock.service.OrderBookService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 撮合引擎实现类
- * 
+ *
  * @author adrainty
  * @since 2026-02-26
  */
@@ -30,14 +30,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @RequiredArgsConstructor
 public class MatchingEngineImpl implements OrderBookService {
-    
-    private final OrderRepository orderRepository;
-    private final TradeRecordRepository tradeRecordRepository;
-    private final InstrumentRepository instrumentRepository;
-    
+
+    private final OrderMapper orderMapper;
+    private final TradeRecordMapper tradeRecordMapper;
+    private final InstrumentMapper instrumentMapper;
+
     // 每个品种一个订单簿：key = exchangeId_instrumentCode
     private static final Map<String, OrderBook> ORDER_BOOKS = new ConcurrentHashMap<>();
-    
+
     @Override
     public OrderBookDTO getOrderBook(Long exchangeId, String instrumentCode) {
         OrderBook orderBook = getOrCreateOrderBook(exchangeId, instrumentCode);
@@ -85,7 +85,7 @@ public class MatchingEngineImpl implements OrderBookService {
         String key = exchangeId + "_" + instrumentCode;
         return ORDER_BOOKS.computeIfAbsent(key, k -> new OrderBook(exchangeId, instrumentCode));
     }
-    
+
     /**
      * 撮合并添加买单
      */
@@ -165,7 +165,7 @@ public class MatchingEngineImpl implements OrderBookService {
 
         return quantity.subtract(remainingQty);
     }
-    
+
     /**
      * 获取订单簿中某价格的第一个订单 ID（简化实现）
      */
@@ -173,7 +173,7 @@ public class MatchingEngineImpl implements OrderBookService {
         // 简化实现，实际应该维护价格到订单 ID 列表的映射
         return 0L;
     }
-    
+
     /**
      * 构建档口 DTO
      */
@@ -181,14 +181,14 @@ public class MatchingEngineImpl implements OrderBookService {
         OrderBookDTO dto = new OrderBookDTO();
         dto.setExchangeId(exchangeId);
         dto.setInstrumentCode(instrumentCode);
-        
+
         // 获取最新价
-        Instrument instrument = instrumentRepository.findByInstrumentCode(instrumentCode).orElse(null);
+        Instrument instrument = instrumentMapper.findByInstrumentCode(instrumentCode);
         if (instrument != null) {
             dto.setLatestPrice(instrument.getCurrentPrice());
             dto.setChangePercent(instrument.getChangePercent());
         }
-        
+
         // 获取买卖档口
         List<OrderBookDTO.PriceLevel> bids = orderBook.getBids(5).stream()
             .map(l -> new OrderBookDTO.PriceLevel(l.getPrice(), l.getQuantity()))
@@ -196,10 +196,10 @@ public class MatchingEngineImpl implements OrderBookService {
         List<OrderBookDTO.PriceLevel> asks = orderBook.getAsks(5).stream()
             .map(l -> new OrderBookDTO.PriceLevel(l.getPrice(), l.getQuantity()))
             .toList();
-        
+
         dto.setBids(bids);
         dto.setAsks(asks);
-        
+
         return dto;
     }
 }

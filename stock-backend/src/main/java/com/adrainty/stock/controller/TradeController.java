@@ -8,7 +8,6 @@ import com.adrainty.stock.dto.PlaceOrderRequest;
 import com.adrainty.stock.dto.PositionDTO;
 import com.adrainty.stock.exception.GlobalExceptionHandler;
 import com.adrainty.stock.service.CapitalService;
-import com.adrainty.stock.service.impl.CapitalServiceImpl;
 import com.adrainty.stock.service.OrderBookService;
 import com.adrainty.stock.service.OrderService;
 import com.adrainty.stock.service.PositionService;
@@ -19,9 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 交易控制器
@@ -37,7 +34,7 @@ public class TradeController {
     
     private final OrderService orderService;
     private final OrderBookService orderBookService;
-    private final CapitalServiceImpl capitalService;
+    private final CapitalService capitalService;
     private final PositionService positionService;
     
     /**

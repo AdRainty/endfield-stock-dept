@@ -69,10 +69,19 @@ public interface CapitalService {
     
     /**
      * 初始化用户资金
-     * 
+     *
      * @param userId 用户 ID
      * @param exchangeId 交易所 ID
      * @param initialAmount 初始金额
      */
     void initCapital(Long userId, Long exchangeId, BigDecimal initialAmount);
+
+    /**
+     * 获取可用资金（内部使用）
+     *
+     * @param userId 用户 ID
+     * @param exchangeId 交易所 ID
+     * @return 可用资金
+     */
+    BigDecimal getAvailableCapital(Long userId, Long exchangeId);
 }

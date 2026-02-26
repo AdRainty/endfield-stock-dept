@@ -1,6 +1,7 @@
 package com.adrainty.stock.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,74 +10,72 @@ import java.time.LocalDateTime;
 
 /**
  * 价格历史实体类（用于 K 线数据）
- * 
+ *
  * @author adrainty
  * @since 2026-02-26
  */
 @Getter
 @Setter
-@Entity
-@Table(name = "price_history",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"exchange_id", "instrument_code", "trade_time"}))
+@TableName("price_history")
 public class PriceHistory extends BaseEntity {
-    
+
     /**
      * 交易所 ID
      */
-    @Column(name = "exchange_id", nullable = false)
+    @TableField("exchange_id")
     private Long exchangeId;
-    
+
     /**
      * 品种代码
      */
-    @Column(name = "instrument_code", length = 20, nullable = false)
+    @TableField("instrument_code")
     private String instrumentCode;
-    
+
     /**
      * K 线周期：1m-1 分钟 5m-5 分钟 15m-15 分钟 1h-1 小时 1d-1 天
      */
-    @Column(name = "period", length = 10, nullable = false)
+    @TableField("period")
     private String period;
-    
+
     /**
      * 交易时间
      */
-    @Column(name = "trade_time", nullable = false)
+    @TableField("trade_time")
     private LocalDateTime tradeTime;
-    
+
     /**
      * 开盘价
      */
-    @Column(name = "open_price", precision = 10, scale = 2, nullable = false)
+    @TableField("open_price")
     private BigDecimal openPrice;
-    
+
     /**
      * 最高价
      */
-    @Column(name = "high_price", precision = 10, scale = 2, nullable = false)
+    @TableField("high_price")
     private BigDecimal highPrice;
-    
+
     /**
      * 最低价
      */
-    @Column(name = "low_price", precision = 10, scale = 2, nullable = false)
+    @TableField("low_price")
     private BigDecimal lowPrice;
-    
+
     /**
      * 收盘价
      */
-    @Column(name = "close_price", precision = 10, scale = 2, nullable = false)
+    @TableField("close_price")
     private BigDecimal closePrice;
-    
+
     /**
      * 成交量
      */
-    @Column(name = "volume", precision = 20, scale = 2)
+    @TableField("volume")
     private BigDecimal volume;
-    
+
     /**
      * 成交额
      */
-    @Column(name = "turnover", precision = 20, scale = 2)
+    @TableField("turnover")
     private BigDecimal turnover;
 }
