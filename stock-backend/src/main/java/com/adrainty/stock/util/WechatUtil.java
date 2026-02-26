@@ -167,12 +167,12 @@ public class WechatUtil {
     }
 
     /**
-     * 使用 code 换取 access_token 和 openid
+     * 使用 code 换取 access_token 和 openid（公开方法，供外部调用）
      *
      * @param code 微信授权码
      * @return access_token 和 openid
      */
-    private Map<String, String> getAccessTokenByCode(String code) {
+    public Map<String, String> getAccessTokenByCode(String code) {
         String url = String.format(
             "%s?appid=%s&secret=%s&code=%s&grant_type=authorization_code",
             WX_ACCESS_TOKEN_URL,
@@ -207,13 +207,13 @@ public class WechatUtil {
     }
 
     /**
-     * 获取用户信息
+     * 获取用户信息（公开方法，供外部调用）
      *
      * @param accessToken access_token
      * @param openid 用户 openid
      * @return 用户信息 JSON
      */
-    private JSONObject getUserInfo(String accessToken, String openid) {
+    public JSONObject getUserInfo(String accessToken, String openid) {
         String url = String.format(
             "%s?access_token=%s&openid=%s&lang=zh_CN",
             WX_USER_INFO_URL,

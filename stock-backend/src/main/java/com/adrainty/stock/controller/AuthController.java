@@ -7,6 +7,7 @@ import com.adrainty.stock.entity.User;
 import com.adrainty.stock.exception.GlobalExceptionHandler;
 import com.adrainty.stock.service.UserService;
 import com.adrainty.stock.util.WechatUtil;
+import com.alibaba.fastjson2.JSONObject;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -92,27 +93,45 @@ public class AuthController {
     public ResponseEntity<GlobalExceptionHandler.ApiResult<Map<String, Object>>> wxLogin(
             @RequestBody LoginRequest request,
             HttpServletRequest httpRequest) {
-        // 根据 code 获取 OpenID
-        Map<String, String> wxResult = wechatUtil.getOpenIdByCode(request.getCode());
-        String openid = wxResult.get("openid");
-        
-        // 登录/注册
-        String clientIp = httpRequest.getRemoteAddr();
-        LoginResponse loginResponse = userService.wxLogin(
-            openid,
-            request.getNickname(),
-            request.getAvatar(),
-            clientIp
-        );
-        
-        // 生成 Sa-Token
-        StpUtil.login(loginResponse.getUserId());
-        String token = StpUtil.getTokenValue();
-        
-        Map<String, Object> result = new HashMap<>();
-        result.put("user", loginResponse);
-        result.put("token", token);
-        return ResponseEntity.ok(GlobalExceptionHandler.ApiResult.success(result));
+        try {
+            // 根据 code 获取 access_token 和 openid
+            String code = request.getCode();
+            Map<String, String> tokenInfo = wechatUtil.getAccessTokenByCode(code);
+            String openid = tokenInfo.get("openid");
+            String accessToken = tokenInfo.get("access_token");
+
+            if (openid == null || accessToken == null) {
+                return ResponseEntity.badRequest().body(
+                    GlobalExceptionHandler.ApiResult.error(400, "微信授权失败，请重试"));
+            }
+
+            // 获取用户信息
+            JSONObject userInfo = wechatUtil.getUserInfo(accessToken, openid);
+            String nickname = userInfo.getString("nickname");
+            String avatar = userInfo.getString("headimgurl");
+
+            // 登录/注册
+            String clientIp = httpRequest.getRemoteAddr();
+            LoginResponse loginResponse = userService.wxLogin(
+                openid,
+                nickname,
+                avatar,
+                clientIp
+            );
+
+            // 生成 Sa-Token
+            StpUtil.login(loginResponse.getUserId());
+            String token = StpUtil.getTokenValue();
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("user", loginResponse);
+            result.put("token", token);
+            return ResponseEntity.ok(GlobalExceptionHandler.ApiResult.success(result));
+        } catch (Exception e) {
+            log.error("微信登录失败", e);
+            return ResponseEntity.badRequest().body(
+                GlobalExceptionHandler.ApiResult.error(500, "登录失败：" + e.getMessage()));
+        }
     }
     
     /**
