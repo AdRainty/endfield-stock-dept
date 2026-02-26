@@ -73,9 +73,9 @@ databaseChangeLog:
         - addUniqueConstraint:
             tableName: user_position
             constraintName: uk_user_exchange_instrument
-            columns: user_id, exchange_id, instrument_code
+            columnNames: user_id, exchange_id, instrument_code
 
         - addUniqueConstraint:
             tableName: price_history
             constraintName: uk_exchange_instrument_period_time
-            columns: exchange_id, instrument_code, period, trade_time
+            columnNames: exchange_id, instrument_code, period, trade_time
