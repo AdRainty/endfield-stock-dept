@@ -2003,10 +2003,14 @@ body {
   background: transparent !important;
 }
 
+/* 使用 ant-table-wrapper 提高优先级 */
+.orders-table :global(.ant-table-wrapper .ant-table),
 .orders-table :global(.ant-table) {
   background: transparent !important;
 }
 
+.orders-table :global(.ant-table-wrapper .ant-table-thead > tr > th),
+.orders-table :global(.ant-table-wrapper .ant-table-thead .ant-table-cell),
 .orders-table :global(.ant-table-thead > tr > th),
 .orders-table :global(.ant-table-thead .ant-table-cell) {
   background: var(--color-bg-tertiary) !important;
@@ -2017,7 +2021,9 @@ body {
   border-bottom: 1px solid var(--border-color) !important;
 }
 
-.orders-table :global(.ant-table-tbody > tr),
+.orders-table :global(.ant-table-wrapper .ant-table-tbody > tr > td),
+.orders-table :global(.ant-table-wrapper .ant-table-tbody .ant-table-cell),
+.orders-table :global(.ant-table-tbody > tr > td),
 .orders-table :global(.ant-table-tbody .ant-table-cell) {
   background: var(--color-bg-secondary) !important;
   color: var(--text-secondary) !important;
@@ -2026,12 +2032,13 @@ body {
   border-bottom: 1px solid var(--border-color) !important;
 }
 
+.orders-table :global(.ant-table-wrapper .ant-table-tbody > tr:hover),
 .orders-table :global(.ant-table-tbody > tr:hover) {
   background: var(--color-bg-tertiary) !important;
 }
 
-.orders-table :global(.ant-table-placeholder),
-.orders-table :global(.ant-table-placeholder .ant-table-cell) {
+.orders-table :global(.ant-table-wrapper .ant-table-placeholder),
+.orders-table :global(.ant-table-placeholder) {
   background: var(--color-bg-secondary) !important;
 }
 
@@ -2364,10 +2371,13 @@ body {
   padding: 16px;
 }
 
+.position-table :global(.ant-table-wrapper .ant-table),
 .position-table :global(.ant-table) {
   background: transparent !important;
 }
 
+.position-table :global(.ant-table-wrapper .ant-table-thead > tr > th),
+.position-table :global(.ant-table-wrapper .ant-table-thead .ant-table-cell),
 .position-table :global(.ant-table-thead > tr > th),
 .position-table :global(.ant-table-thead .ant-table-cell) {
   background: var(--color-bg-tertiary) !important;
@@ -2379,7 +2389,9 @@ body {
   padding: 14px 16px !important;
 }
 
-.position-table :global(.ant-table-tbody > tr),
+.position-table :global(.ant-table-wrapper .ant-table-tbody > tr > td),
+.position-table :global(.ant-table-wrapper .ant-table-tbody .ant-table-cell),
+.position-table :global(.ant-table-tbody > tr > td),
 .position-table :global(.ant-table-tbody .ant-table-cell) {
   background: var(--color-bg-secondary) !important;
   color: var(--text-secondary) !important;
@@ -2390,12 +2402,13 @@ body {
   transition: background var(--transition-fast);
 }
 
+.position-table :global(.ant-table-wrapper .ant-table-tbody > tr:hover),
 .position-table :global(.ant-table-tbody > tr:hover) {
   background: var(--color-bg-tertiary) !important;
 }
 
-.position-table :global(.ant-table-placeholder),
-.position-table :global(.ant-table-placeholder .ant-table-cell) {
+.position-table :global(.ant-table-wrapper .ant-table-placeholder),
+.position-table :global(.ant-table-placeholder) {
   background: var(--color-bg-secondary) !important;
 }
 
@@ -2603,10 +2616,13 @@ body {
   padding: 16px;
 }
 
+.admin-table :global(.ant-table-wrapper .ant-table),
 .admin-table :global(.ant-table) {
   background: transparent !important;
 }
 
+.admin-table :global(.ant-table-wrapper .ant-table-thead > tr > th),
+.admin-table :global(.ant-table-wrapper .ant-table-thead .ant-table-cell),
 .admin-table :global(.ant-table-thead > tr > th),
 .admin-table :global(.ant-table-thead .ant-table-cell) {
   background: var(--color-bg-tertiary) !important;
@@ -2618,7 +2634,9 @@ body {
   padding: 14px 16px !important;
 }
 
-.admin-table :global(.ant-table-tbody > tr),
+.admin-table :global(.ant-table-wrapper .ant-table-tbody > tr > td),
+.admin-table :global(.ant-table-wrapper .ant-table-tbody .ant-table-cell),
+.admin-table :global(.ant-table-tbody > tr > td),
 .admin-table :global(.ant-table-tbody .ant-table-cell) {
   background: var(--color-bg-secondary) !important;
   color: var(--text-secondary) !important;
@@ -2629,12 +2647,13 @@ body {
   transition: background var(--transition-fast);
 }
 
+.admin-table :global(.ant-table-wrapper .ant-table-tbody > tr:hover),
 .admin-table :global(.ant-table-tbody > tr:hover) {
   background: var(--color-bg-tertiary) !important;
 }
 
-.admin-table :global(.ant-table-placeholder),
-.admin-table :global(.ant-table-placeholder .ant-table-cell) {
+.admin-table :global(.ant-table-wrapper .ant-table-placeholder),
+.admin-table :global(.ant-table-placeholder) {
   background: var(--color-bg-secondary) !important;
 }
 
@@ -2851,80 +2870,72 @@ body {
 }
 
 /* =====================
-   Ant Design 组件样式覆盖
+   Ant Design 组件样式覆盖 - 提高优先级
    ===================== */
 
-/* Table 样式覆盖 - 全局深色主题 */
-:global(.ant-table) {
+/* Table 样式覆盖 - 全局深色主题 - 使用更高优先级 */
+:global(.ant-table-wrapper .ant-table),
+:global(.ant-table-wrapper .ant-table table) {
   background: transparent !important;
   color: var(--text-secondary) !important;
 }
 
-:global(.ant-table table) {
-  background: transparent !important;
-}
-
-:global(.ant-table-thead) {
-  background: var(--color-bg-tertiary) !important;
-}
-
-:global(.ant-table-thead > tr > th),
-:global(.ant-table-thead .ant-table-cell) {
+:global(.ant-table-wrapper .ant-table-thead),
+:global(.ant-table-wrapper .ant-table-thead > tr),
+:global(.ant-table-wrapper .ant-table-thead > tr > th),
+:global(.ant-table-wrapper .ant-table-thead .ant-table-cell) {
   background: var(--color-bg-tertiary) !important;
   color: var(--text-secondary) !important;
-  font-family: var(--font-mono);
+  font-family: var(--font-mono) !important;
   border-bottom: 1px solid var(--border-color) !important;
 }
 
-:global(.ant-table-tbody > tr > td),
-:global(.ant-table-tbody .ant-table-cell) {
+:global(.ant-table-wrapper .ant-table-tbody > tr > td),
+:global(.ant-table-wrapper .ant-table-tbody .ant-table-cell) {
   background: var(--color-bg-secondary) !important;
   color: var(--text-secondary) !important;
-  font-family: var(--font-mono);
+  font-family: var(--font-mono) !important;
   border-bottom: 1px solid var(--border-color) !important;
 }
 
-:global(.ant-table-tbody > tr:hover) {
+:global(.ant-table-wrapper .ant-table-tbody > tr:hover) {
   background: var(--color-bg-tertiary) !important;
 }
 
-:global(.ant-table-container) {
+:global(.ant-table-wrapper .ant-table-container),
+:global(.ant-table-wrapper .ant-table-cell) {
   background: transparent !important;
 }
 
-:global(.ant-table-cell) {
-  background: transparent !important;
-}
-
-:global(.ant-table-thead > tr:hover) {
+:global(.ant-table-wrapper .ant-table-thead > tr:hover) {
   background: var(--color-bg-tertiary) !important;
 }
 
 /* 测量行 - 隐藏或深色 */
-:global(.ant-table-measure-row) {
+:global(.ant-table-wrapper .ant-table-measure-row) {
   visibility: hidden !important;
   position: absolute !important;
 }
 
-:global(.ant-table-measure-cell) {
+:global(.ant-table-wrapper .ant-table-measure-cell) {
   background: var(--color-bg-tertiary) !important;
 }
 
 /* 空数据状态 */
-:global(.ant-table-placeholder) {
+:global(.ant-table-wrapper .ant-table-placeholder) {
   background: var(--color-bg-secondary) !important;
 }
 
-:global(.ant-table-placeholder .ant-table-cell) {
+:global(.ant-table-wrapper .ant-table-placeholder .ant-table-cell) {
   background: var(--color-bg-secondary) !important;
   border-bottom: 1px solid var(--border-color) !important;
 }
 
-:global(.ant-empty-description) {
+:global(.ant-table-wrapper .ant-empty-description) {
   color: var(--text-tertiary) !important;
 }
 
-:global(.ant-empty-image) {
+:global(.ant-table-wrapper .ant-empty-image) {
   opacity: 0.3;
 }
 
