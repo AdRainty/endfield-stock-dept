@@ -38,6 +38,48 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
     return inTradingTime;
   };
 
+  // 生成完整的交易时间段（9:30-15:00，共 240 分钟）
+  const generateFullTradingTime = (data) => {
+    if (period !== "1m") return data;
+
+    const fullData = [];
+    const dataMap = new Map();
+
+    // 将现有数据存入 Map
+    data.forEach(item => {
+      dataMap.set(item.time, item);
+    });
+
+    // 生成 9:30 到 15:00 的所有分钟
+    for (let hour = 9; hour <= 15; hour++) {
+      for (let minute = 0; minute < 60; minute++) {
+        // 跳过 9:00-9:29
+        if (hour === 9 && minute < 30) continue;
+        // 跳过 15:00 之后
+        if (hour === 15 && minute > 0) continue;
+
+        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        const existingData = dataMap.get(timeStr);
+
+        if (existingData) {
+          fullData.push(existingData);
+        } else {
+          // 没有数据的分钟，创建一个空数据点
+          fullData.push({
+            time: timeStr,
+            open: null,
+            close: null,
+            high: null,
+            low: null,
+            volume: 0,
+          });
+        }
+      }
+    }
+
+    return fullData;
+  };
+
   // 获取 K 线数据
   const fetchKline = async () => {
     if (!exchangeId || !instrumentCode) return;
@@ -49,7 +91,10 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
       );
       const result = await res.json();
       if (result.code === 0) {
-        setKlineData(result.data || []);
+        const rawData = result.data || [];
+        // 分时图使用完整的交易时间段
+        const processedData = period === "1m" ? generateFullTradingTime(rawData) : rawData;
+        setKlineData(processedData);
       }
     } catch (error) {
       console.error("获取 K 线数据失败", error);
@@ -82,10 +127,13 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
 
   // 格式化时间显示
   const formatTime = (timeStr, periodType) => {
+    if (!timeStr) return "";
+    if (periodType === "1m") {
+      // 分时图直接显示时间字符串
+      return timeStr;
+    }
     const date = new Date(timeStr);
     switch (periodType) {
-      case "1m":
-        return date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
       case "1d":
         return date.toLocaleDateString("zh-CN", { month: "2-digit", day: "2-digit" });
       case "1M":
@@ -96,6 +144,31 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
         return timeStr;
     }
   };
+
+  // 分时图 X 轴刻度间隔（每 30 分钟显示一个刻度）
+  const getXAxisTicks = (data) => {
+    if (period !== "1m" || data.length === 0) return [];
+    const tickIndices = [];
+    // 9:30, 10:00, 10:30, 11:00, 11:30, 13:00, 13:30, 14:00, 14:30, 15:00
+    const showMinutes = [30, 0, 30, 0, 30, 0, 30, 0, 30, 0];
+    const showHours = [9, 10, 10, 11, 11, 13, 13, 14, 14, 15];
+
+    let dataIndex = 0;
+    for (let i = 0; i < showHours.length; i++) {
+      const hour = showHours[i];
+      const minute = showMinutes[i];
+      // 计算该时间点在数据中的索引
+      const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      const idx = data.findIndex(item => item.time === timeStr);
+      if (idx !== -1) {
+        tickIndices.push(idx);
+      }
+    }
+
+    return tickIndices;
+  };
+
+  const xAxisTicks = useMemo(() => getXAxisTicks(klineData), [klineData, period]);
 
   // 计算最高价和最低价用于 Y 轴范围
   const { yAxisDomain, priceChange } = useMemo(() => {
@@ -203,6 +276,7 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
                     tickFormatter={(t) => formatTime(t, period)}
                     stroke="#666"
                     tick={{ fontSize: 12 }}
+                    ticks={period === "1m" ? xAxisTicks : undefined}
                   />
                   <YAxis
                     domain={yAxisDomain}
@@ -238,6 +312,7 @@ const KlineChart = ({ exchangeId, instrumentCode }) => {
                     tickFormatter={(t) => formatTime(t, period)}
                     stroke="#666"
                     tick={{ fontSize: 12 }}
+                    ticks={period === "1m" ? xAxisTicks : undefined}
                   />
                   <YAxis
                     domain={yAxisDomain}
