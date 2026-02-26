@@ -2000,35 +2000,39 @@ body {
 }
 
 .orders-table {
-  background: transparent;
+  background: transparent !important;
 }
 
 .orders-table :global(.ant-table) {
-  background: transparent;
+  background: transparent !important;
 }
 
-.orders-table :global(.ant-table-thead > tr > th) {
-  background: rgba(255, 107, 53, 0.08);
-  color: var(--color-primary);
-  font-family: var(--font-mono);
-  font-size: 12px;
+.orders-table :global(.ant-table-thead > tr > th),
+.orders-table :global(.ant-table-thead .ant-table-cell) {
+  background: var(--color-bg-tertiary) !important;
+  color: var(--text-secondary) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
   letter-spacing: 1px;
-  border-bottom: 1px solid rgba(255, 107, 53, 0.2);
+  border-bottom: 1px solid var(--border-color) !important;
 }
 
-.orders-table :global(.ant-table-tbody > tr) {
-  background: rgba(255, 255, 255, 0.02);
+.orders-table :global(.ant-table-tbody > tr),
+.orders-table :global(.ant-table-tbody .ant-table-cell) {
+  background: var(--color-bg-secondary) !important;
+  color: var(--text-secondary) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 13px !important;
+  border-bottom: 1px solid var(--border-color) !important;
 }
 
 .orders-table :global(.ant-table-tbody > tr:hover) {
-  background: rgba(255, 107, 53, 0.05);
+  background: var(--color-bg-tertiary) !important;
 }
 
-.orders-table :global(.ant-table-tbody > tr > td) {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--text-secondary);
-  font-family: var(--font-mono);
-  font-size: 13px;
+.orders-table :global(.ant-table-placeholder),
+.orders-table :global(.ant-table-placeholder .ant-table-cell) {
+  background: var(--color-bg-secondary) !important;
 }
 
 .order-no {
@@ -2361,34 +2365,38 @@ body {
 }
 
 .position-table :global(.ant-table) {
-  background: transparent;
+  background: transparent !important;
 }
 
-.position-table :global(.ant-table-thead > tr > th) {
-  background: rgba(255, 107, 53, 0.08);
-  color: var(--color-primary);
-  font-family: var(--font-mono);
-  font-size: 12px;
+.position-table :global(.ant-table-thead > tr > th),
+.position-table :global(.ant-table-thead .ant-table-cell) {
+  background: var(--color-bg-tertiary) !important;
+  color: var(--text-secondary) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
   letter-spacing: 1px;
-  border-bottom: 1px solid var(--border-color);
-  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color) !important;
+  padding: 14px 16px !important;
 }
 
-.position-table :global(.ant-table-tbody > tr) {
-  background: rgba(255, 255, 255, 0.02);
+.position-table :global(.ant-table-tbody > tr),
+.position-table :global(.ant-table-tbody .ant-table-cell) {
+  background: var(--color-bg-secondary) !important;
+  color: var(--text-secondary) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 13px !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  padding: 14px 16px !important;
   transition: background var(--transition-fast);
 }
 
 .position-table :global(.ant-table-tbody > tr:hover) {
-  background: rgba(255, 107, 53, 0.05);
+  background: var(--color-bg-tertiary) !important;
 }
 
-.position-table :global(.ant-table-tbody > tr > td) {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--text-secondary);
-  font-family: var(--font-mono);
-  font-size: 13px;
-  padding: 14px 16px;
+.position-table :global(.ant-table-placeholder),
+.position-table :global(.ant-table-placeholder .ant-table-cell) {
+  background: var(--color-bg-secondary) !important;
 }
 
 .instrument-code {
@@ -2596,34 +2604,38 @@ body {
 }
 
 .admin-table :global(.ant-table) {
-  background: transparent;
+  background: transparent !important;
 }
 
-.admin-table :global(.ant-table-thead > tr > th) {
-  background: var(--color-bg-tertiary);
-  color: var(--text-secondary);
-  font-family: var(--font-mono);
-  font-size: 12px;
+.admin-table :global(.ant-table-thead > tr > th),
+.admin-table :global(.ant-table-thead .ant-table-cell) {
+  background: var(--color-bg-tertiary) !important;
+  color: var(--text-secondary) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
   letter-spacing: 1px;
-  border-bottom: 1px solid var(--border-color);
-  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color) !important;
+  padding: 14px 16px !important;
 }
 
-.admin-table :global(.ant-table-tbody > tr) {
-  background: var(--color-bg-secondary);
+.admin-table :global(.ant-table-tbody > tr),
+.admin-table :global(.ant-table-tbody .ant-table-cell) {
+  background: var(--color-bg-secondary) !important;
+  color: var(--text-secondary) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 13px !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  padding: 14px 16px !important;
   transition: background var(--transition-fast);
 }
 
 .admin-table :global(.ant-table-tbody > tr:hover) {
-  background: var(--color-bg-tertiary);
+  background: var(--color-bg-tertiary) !important;
 }
 
-.admin-table :global(.ant-table-tbody > tr > td) {
-  border-bottom: 1px solid var(--border-color);
-  color: var(--text-secondary);
-  font-family: var(--font-mono);
-  font-size: 13px;
-  padding: 14px 16px;
+.admin-table :global(.ant-table-placeholder),
+.admin-table :global(.ant-table-placeholder .ant-table-cell) {
+  background: var(--color-bg-secondary) !important;
 }
 
 .user-id {
@@ -2852,14 +2864,20 @@ body {
   background: transparent !important;
 }
 
-:global(.ant-table-thead > tr > th) {
+:global(.ant-table-thead) {
+  background: var(--color-bg-tertiary) !important;
+}
+
+:global(.ant-table-thead > tr > th),
+:global(.ant-table-thead .ant-table-cell) {
   background: var(--color-bg-tertiary) !important;
   color: var(--text-secondary) !important;
   font-family: var(--font-mono);
   border-bottom: 1px solid var(--border-color) !important;
 }
 
-:global(.ant-table-tbody > tr > td) {
+:global(.ant-table-tbody > tr > td),
+:global(.ant-table-tbody .ant-table-cell) {
   background: var(--color-bg-secondary) !important;
   color: var(--text-secondary) !important;
   font-family: var(--font-mono);
@@ -2880,6 +2898,34 @@ body {
 
 :global(.ant-table-thead > tr:hover) {
   background: var(--color-bg-tertiary) !important;
+}
+
+/* 测量行 - 隐藏或深色 */
+:global(.ant-table-measure-row) {
+  visibility: hidden !important;
+  position: absolute !important;
+}
+
+:global(.ant-table-measure-cell) {
+  background: var(--color-bg-tertiary) !important;
+}
+
+/* 空数据状态 */
+:global(.ant-table-placeholder) {
+  background: var(--color-bg-secondary) !important;
+}
+
+:global(.ant-table-placeholder .ant-table-cell) {
+  background: var(--color-bg-secondary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+:global(.ant-empty-description) {
+  color: var(--text-tertiary) !important;
+}
+
+:global(.ant-empty-image) {
+  opacity: 0.3;
 }
 
 /* Input 样式覆盖 */
