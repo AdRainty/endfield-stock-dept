@@ -7,7 +7,8 @@ import Layout from "./layouts/BasicLayout";
 import Market from "./pages/Market";
 import Trade from "./pages/Trade";
 import Position from "./pages/Position";
-import Admin from "./pages/Admin";
+import AdminUsers from "./pages/AdminUsers";
+import AdminExchange from "./pages/AdminExchange";
 
 // 简单路由守卫
 const ProtectedRoute = ({ children }) => {
@@ -28,7 +29,9 @@ function App() {
           <Route path="market" element={<Market />} />
           <Route path="trade" element={<Trade />} />
           <Route path="position" element={<Position />} />
-          <Route path="admin" element={<Admin />} />
+          <Route path="admin" element={<Navigate to="/admin/users" replace />} />
+          <Route path="admin/users" element={<AdminUsers />} />
+          <Route path="admin/exchange" element={<AdminExchange />} />
         </Route>
       </Routes>
     </BrowserRouter>

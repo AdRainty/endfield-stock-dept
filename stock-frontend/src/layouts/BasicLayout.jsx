@@ -11,6 +11,8 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   ThunderboltOutlined,
+  DashboardOutlined,
+  ExchangeOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 
@@ -39,6 +41,18 @@ const BasicLayout = () => {
             key: "/admin",
             icon: <SettingOutlined />,
             label: <span>管理后台 <span className="menu-sub">ADMIN</span></span>,
+            children: [
+              {
+                key: "/admin/users",
+                icon: <UserOutlined />,
+                label: <span>用户管理 <span className="menu-sub">USER MANAGEMENT</span></span>,
+              },
+              {
+                key: "/admin/exchange",
+                icon: <ExchangeOutlined />,
+                label: <span>交易所管理 <span className="menu-sub">EXCHANGE MANAGEMENT</span></span>,
+              },
+            ],
           },
         ]
       : []),
@@ -119,6 +133,7 @@ const BasicLayout = () => {
             items={menuItems}
             onClick={({ key }) => navigate(key)}
             className="side-menu"
+            inlineIndent={16}
           />
 
           <div className="side-nav-footer">
