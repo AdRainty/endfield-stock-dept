@@ -156,7 +156,7 @@ const Login = () => {
                       {qrCodeValue ? (
                         <>
                           <div className="qrcode-frame">
-                            <QRCode value={qrCodeValue} size={180} bgColor="#ffffff" fgColor="#000000" />
+                            <img src={qrCodeValue} alt="微信二维码" width="180" height="180" />
                             <div className="qrcode-overlay"></div>
                           </div>
                           <div className="scan-line"></div>
