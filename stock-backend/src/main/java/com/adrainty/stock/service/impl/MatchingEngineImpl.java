@@ -40,30 +40,30 @@ public class MatchingEngineImpl implements OrderBookService {
     
     @Override
     public OrderBookDTO getOrderBook(Long exchangeId, String instrumentCode) {
-        OrderBook orderBook = getOrderBook(exchangeId, instrumentCode);
+        OrderBook orderBook = getOrCreateOrderBook(exchangeId, instrumentCode);
         return buildOrderBookDTO(orderBook, exchangeId, instrumentCode);
     }
-    
+
     @Override
-    public BigDecimal addBidOrder(Long exchangeId, String instrumentCode, BigDecimal price, 
+    public BigDecimal addBidOrder(Long exchangeId, String instrumentCode, BigDecimal price,
                                    BigDecimal quantity, Long orderId) {
-        OrderBook orderBook = getOrderBook(exchangeId, instrumentCode);
+        OrderBook orderBook = getOrCreateOrderBook(exchangeId, instrumentCode);
         return matchAndAddBid(orderBook, price, quantity, orderId);
     }
-    
+
     @Override
-    public BigDecimal addAskOrder(Long exchangeId, String instrumentCode, BigDecimal price, 
+    public BigDecimal addAskOrder(Long exchangeId, String instrumentCode, BigDecimal price,
                                    BigDecimal quantity, Long orderId) {
-        OrderBook orderBook = getOrderBook(exchangeId, instrumentCode);
+        OrderBook orderBook = getOrCreateOrderBook(exchangeId, instrumentCode);
         return matchAndAddAsk(orderBook, price, quantity, orderId);
     }
-    
+
     @Override
     public void removeOrder(Long exchangeId, String instrumentCode, Long orderId, BigDecimal quantity) {
-        OrderBook orderBook = getOrderBook(exchangeId, instrumentCode);
+        OrderBook orderBook = getOrCreateOrderBook(exchangeId, instrumentCode);
         orderBook.removeOrder(orderId, quantity);
     }
-    
+
     @Override
     public List<OrderBookDTO> getAllOrderBooks() {
         List<OrderBookDTO> result = new ArrayList<>();
@@ -77,11 +77,11 @@ public class MatchingEngineImpl implements OrderBookService {
         }
         return result;
     }
-    
+
     /**
      * 获取或创建订单簿
      */
-    private OrderBook getOrderBook(Long exchangeId, String instrumentCode) {
+    private OrderBook getOrCreateOrderBook(Long exchangeId, String instrumentCode) {
         String key = exchangeId + "_" + instrumentCode;
         return ORDER_BOOKS.computeIfAbsent(key, k -> new OrderBook(exchangeId, instrumentCode));
     }
@@ -89,80 +89,80 @@ public class MatchingEngineImpl implements OrderBookService {
     /**
      * 撮合并添加买单
      */
-    private BigDecimal matchAndAddBid(OrderBook orderBook, BigDecimal price, 
+    private BigDecimal matchAndAddBid(OrderBook orderBook, BigDecimal price,
                                        BigDecimal quantity, Long orderId) {
         BigDecimal remainingQty = quantity;
-        
+
         // 查找可以撮合的卖单（价格 <= 买单价格）
         var matchableAsks = orderBook.findMatchableAsks(price);
-        
-        for (var askEntry : matchableAsks) {
+
+        for (var askEntry : matchableAsks.entrySet()) {
             if (remainingQty.compareTo(BigDecimal.ZERO) <= 0) break;
-            
+
             BigDecimal askPrice = askEntry.getKey();
             OrderBook.OrderLevel askLevel = askEntry.getValue();
-            
+
             // 撮合数量
             BigDecimal matchQty = remainingQty.min(askLevel.getQuantity());
-            
+
             // 更新卖单档口
             askLevel.reduceQuantity(matchQty);
             if (askLevel.getQuantity().compareTo(BigDecimal.ZERO) <= 0) {
                 orderBook.removeOrder(getFirstOrderIdForPrice(orderBook, askPrice), matchQty);
             }
-            
+
             // 更新剩余数量
             remainingQty = remainingQty.subtract(matchQty);
-            
-            log.info("买单撮合：orderId={}, matchPrice={}, matchQty={}, remainingQty={}", 
+
+            log.info("买单撮合：orderId={}, matchPrice={}, matchQty={}, remainingQty={}",
                 orderId, askPrice, matchQty, remainingQty);
         }
-        
+
         // 如果有剩余，加入买单档口
         if (remainingQty.compareTo(BigDecimal.ZERO) > 0) {
             orderBook.addBid(price, remainingQty, orderId);
         }
-        
+
         return quantity.subtract(remainingQty);
     }
-    
+
     /**
      * 撮合并添加卖单
      */
-    private BigDecimal matchAndAddAsk(OrderBook orderBook, BigDecimal price, 
+    private BigDecimal matchAndAddAsk(OrderBook orderBook, BigDecimal price,
                                        BigDecimal quantity, Long orderId) {
         BigDecimal remainingQty = quantity;
-        
+
         // 查找可以撮合的买单（价格 >= 卖单价格）
         var matchableBids = orderBook.findMatchableBids(price);
-        
-        for (var bidEntry : matchableBids) {
+
+        for (var bidEntry : matchableBids.entrySet()) {
             if (remainingQty.compareTo(BigDecimal.ZERO) <= 0) break;
-            
+
             BigDecimal bidPrice = bidEntry.getKey();
             OrderBook.OrderLevel bidLevel = bidEntry.getValue();
-            
+
             // 撮合数量
             BigDecimal matchQty = remainingQty.min(bidLevel.getQuantity());
-            
+
             // 更新买单档口
             bidLevel.reduceQuantity(matchQty);
             if (bidLevel.getQuantity().compareTo(BigDecimal.ZERO) <= 0) {
                 orderBook.removeOrder(getFirstOrderIdForPrice(orderBook, bidPrice), matchQty);
             }
-            
+
             // 更新剩余数量
             remainingQty = remainingQty.subtract(matchQty);
-            
-            log.info("卖单撮合：orderId={}, matchPrice={}, matchQty={}, remainingQty={}", 
+
+            log.info("卖单撮合：orderId={}, matchPrice={}, matchQty={}, remainingQty={}",
                 orderId, bidPrice, matchQty, remainingQty);
         }
-        
+
         // 如果有剩余，加入卖单档口
         if (remainingQty.compareTo(BigDecimal.ZERO) > 0) {
             orderBook.addAsk(price, remainingQty, orderId);
         }
-        
+
         return quantity.subtract(remainingQty);
     }
     

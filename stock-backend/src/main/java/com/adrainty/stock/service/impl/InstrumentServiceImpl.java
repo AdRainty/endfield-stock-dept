@@ -40,8 +40,9 @@ public class InstrumentServiceImpl implements InstrumentService, CommandLineRunn
     }
     
     @Override
-    public Instrument getByCode(String instrumentCode) {
-        return instrumentRepository.findByInstrumentCode(instrumentCode).orElse(null);
+    public InstrumentDTO getByCode(String instrumentCode) {
+        Instrument instrument = instrumentRepository.findByInstrumentCode(instrumentCode).orElse(null);
+        return instrument != null ? convertToDTO(instrument) : null;
     }
     
     @Override
