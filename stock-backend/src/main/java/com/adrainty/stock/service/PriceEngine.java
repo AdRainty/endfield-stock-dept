@@ -2,8 +2,8 @@ package com.adrainty.stock.service;
 
 import com.adrainty.stock.entity.Instrument;
 import com.adrainty.stock.entity.PriceHistory;
-import com.adrainty.stock.repository.InstrumentRepository;
-import com.adrainty.stock.repository.PriceHistoryRepository;
+import com.adrainty.stock.mapper.InstrumentMapper;
+import com.adrainty.stock.mapper.PriceHistoryMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,7 +18,7 @@ import java.util.Random;
 /**
  * 价格波动引擎
  * 使用随机游走算法模拟价格波动
- * 
+ *
  * @author adrainty
  * @since 2026-02-26
  */
@@ -26,9 +26,9 @@ import java.util.Random;
 @Component
 @RequiredArgsConstructor
 public class PriceEngine {
-    
-    private final InstrumentRepository instrumentRepository;
-    private final PriceHistoryRepository priceHistoryRepository;
+
+    private final InstrumentMapper instrumentMapper;
+    private final PriceHistoryMapper priceHistoryMapper;
     
     private final Random random = new Random();
     
@@ -38,7 +38,7 @@ public class PriceEngine {
     @Scheduled(fixedRate = 5000)
     @Transactional
     public void updatePrices() {
-        List<Instrument> instruments = instrumentRepository.findAll();
+        List<Instrument> instruments = instrumentMapper.selectList(null);
         
         for (Instrument instrument : instruments) {
             if (instrument.getStatus() == 1) {
@@ -85,7 +85,7 @@ public class PriceEngine {
         instrument.setChangeAmount(changeAmount);
         instrument.setChangePercent(changePercent);
         
-        instrumentRepository.save(instrument);
+        instrumentMapper.updateById(instrument);
     }
     
     /**
@@ -104,7 +104,7 @@ public class PriceEngine {
         history.setVolume(BigDecimal.valueOf(instrument.getVolume()));
         history.setTurnover(instrument.getTurnover());
         
-        priceHistoryRepository.save(history);
+        priceHistoryMapper.insert(history);
     }
     
     /**
