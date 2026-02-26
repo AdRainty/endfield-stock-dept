@@ -66,16 +66,36 @@ public class WechatUtil {
         String sceneStr = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
         String redisKey = REDIS_QR_PREFIX + sceneStr;
 
+        // 检查微信配置是否有效
+        if (appId == null || appId.isEmpty() || "wx2e8668fed19d0c6b".equals(appId)) {
+            log.warn("微信 AppID 未配置或使用测试 ID，返回模拟二维码");
+            // 返回提示信息作为二维码内容
+            String tipUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=请配置真实的微信AppID和AppSecret";
+            String qrCodeBase64 = generateQrCodeImage(tipUrl);
+
+            WxQrCodeScene scene = new WxQrCodeScene();
+            scene.setScene(sceneStr);
+            scene.setQrCodeUrl("");
+            scene.setQrCodeBase64(qrCodeBase64);
+            scene.setStatus("WAIT");
+            scene.setExpireTime(System.currentTimeMillis() + QR_EXPIRE_MINUTES * 60 * 1000);
+            redisTemplate.opsForValue().set(redisKey, scene, QR_EXPIRE_MINUTES, TimeUnit.MINUTES);
+            return sceneStr;
+        }
+
         // 生成微信 OAuth2.0 二维码 URL
+        String encodedRedirectUri = encodeURIComponent(redirectUri);
         String qrCodeUrl = String.format(
-            "%s?appid=%s&redirect_uri=%s&response_type=code&scope=snsapi_login&state=%s#wechat_redirect",
+            "%s?appid=%s&redirect_uri=%s&response_type=code&scope=snsapi_login&state=%s",
             WX_OAUTH2_URL,
             appId,
-            encodeURIComponent(redirectUri),
+            encodedRedirectUri,
             sceneStr
         );
 
-        // 使用第三方工具生成二维码图片（这里使用联众二维码 API）
+        log.info("生成微信二维码 URL: {}", qrCodeUrl);
+
+        // 使用第三方工具生成二维码图片
         String qrCodeBase64 = generateQrCodeImage(qrCodeUrl);
 
         // 存储场景信息到 Redis
