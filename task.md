@@ -297,3 +297,65 @@ endfield-stock-dept/
 ---
 
 *最后更新：2026-02-26*
+
+---
+
+## 开发进度记录
+
+### 2026-02-26
+
+#### 已完成任务
+
+1. **后端项目初始化** ✅
+   - 创建 Spring Boot 3.0 项目结构
+   - 配置 Maven pom.xml
+   - 配置多环境配置文件
+   - 创建包结构和主启动类
+
+2. **数据库设计与实体创建** ✅
+   - 创建 11 个实体类（User, Role, Exchange, Instrument, Order, UserPosition, TradeRecord, CapitalFlow, AllocationRecord, PriceHistory, BaseEntity）
+   - 创建 10 个 Repository 接口
+
+3. **Sa-Token 权限集成** ✅
+   - 配置 Sa-Token 拦截器
+   - 创建全局异常处理器
+   - 实现权限注解
+
+4. **微信二维码登录** ✅
+   - 创建 WechatUtil 工具类（模拟实现）
+   - 实现二维码生成和状态轮询
+   - 实现登录接口
+
+5. **交易所与行情模块** ✅
+   - 创建 Exchange 实体和服务
+   - 创建 Instrument 实体和服务
+   - 实现价格波动引擎（PriceEngine）
+   - 初始化两个交易所（四号谷底、武陵）
+   - 初始化 8 个交易品种
+
+6. **档口订单簿与 WebSocket** ✅
+   - 创建 OrderBook 数据结构
+   - 创建 OrderBookService 接口和实现
+   - 配置 WebSocket
+
+7. **交易撮合引擎** ✅
+   - 实现撮合逻辑（价格优先、时间优先）
+   - 创建 OrderService 订单服务
+   - 创建 CapitalService 资金服务
+   - 创建 PositionService 持仓服务
+   - 创建 TradeController
+
+8. **管理员功能** ✅
+   - 创建 AdminService 管理员服务
+   - 实现原能分配功能
+   - 实现用户管理
+   - 实现统计数据
+
+#### 待完成任务
+
+- [ ] 前端项目初始化
+- [ ] 前端页面开发
+- [ ] 单元测试和集成测试
+- [ ] API 文档完善
+- [ ] 部署文档
+
