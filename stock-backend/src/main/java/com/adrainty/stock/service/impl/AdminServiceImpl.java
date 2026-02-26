@@ -251,7 +251,6 @@ public class AdminServiceImpl implements AdminService {
                             .map(Exchange::getName).orElse("未知") : "未知");
             map.put("instrumentCode", i.getInstrumentCode());
             map.put("name", i.getName());
-            map.put("type", i.getType() != null ? i.getType() : "STOCK");
             map.put("status", i.getStatus());
             map.put("currentPrice", i.getCurrentPrice());
             map.put("createdAt", i.getCreatedAt());
@@ -271,7 +270,6 @@ public class AdminServiceImpl implements AdminService {
         instrument.setExchangeId(exchangeId);
         instrument.setInstrumentCode(instrumentCode);
         instrument.setName(name);
-        instrument.setType(type);
         instrument.setStatus(1);
         instrument.setCurrentPrice(BigDecimal.ZERO);
         instrument.setPrevClosePrice(BigDecimal.ZERO);
@@ -300,7 +298,6 @@ public class AdminServiceImpl implements AdminService {
         instrument.setExchangeId(exchangeId);
         instrument.setInstrumentCode(instrumentCode);
         instrument.setName(name);
-        instrument.setType(type);
         instrumentMapper.updateById(instrument);
 
         log.info("更新品种：id={}, exchangeId={}, instrumentCode={}, name={}, type={}",
