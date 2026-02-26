@@ -1508,24 +1508,24 @@ body {
   border: 1px solid var(--border-color);
   border-top: none;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-  padding: 16px;
+  padding: 12px;
 }
 
 .trade-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 6px;
+  margin-bottom: 12px;
 }
 
 .trade-tab {
-  padding: 10px 16px;
+  padding: 8px 12px;
   background: transparent;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
 }
@@ -1549,33 +1549,33 @@ body {
 .trade-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .trade-row {
   display: grid;
-  grid-template-columns: 50px 1fr;
-  gap: 8px;
+  grid-template-columns: 45px 1fr;
+  gap: 6px;
   align-items: center;
 }
 
 .trade-label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
 }
 
 .trade-input-group {
   display: flex;
-  gap: 6px;
+  gap: 4px;
 }
 
 .trade-input {
   background: var(--color-bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
-  padding: 8px 12px;
+  padding: 6px 10px;
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 12px;
   font-family: var(--font-mono);
   transition: all var(--transition-fast);
 }
@@ -1592,12 +1592,12 @@ body {
 }
 
 .price-btn {
-  padding: 6px 10px;
+  padding: 5px 8px;
   background: transparent;
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-xs);
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 10px;
   cursor: pointer;
   transition: all var(--transition-fast);
 }
@@ -1608,20 +1608,20 @@ body {
 }
 
 .trade-total {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   font-family: var(--font-mono);
 }
 
 .trade-unit {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-tertiary);
   margin-left: 4px;
 }
 
 .trade-submit {
-  margin-top: 8px;
+  margin-top: 6px;
   height: 32px;
   font-size: 13px;
   font-weight: 500;
