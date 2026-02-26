@@ -2,8 +2,10 @@ package com.adrainty.stock.service.impl;
 
 import com.adrainty.stock.dto.CapitalAccountDTO;
 import com.adrainty.stock.entity.CapitalFlow;
+import com.adrainty.stock.entity.Exchange;
 import com.adrainty.stock.entity.UserPosition;
 import com.adrainty.stock.mapper.CapitalFlowMapper;
+import com.adrainty.stock.mapper.ExchangeMapper;
 import com.adrainty.stock.mapper.UserPositionMapper;
 import com.adrainty.stock.service.CapitalService;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,7 @@ public class CapitalServiceImpl implements CapitalService {
 
     private final CapitalFlowMapper capitalFlowMapper;
     private final UserPositionMapper userPositionMapper;
+    private final ExchangeMapper exchangeMapper;
 
     // 内存存储用户资金：key = userId_exchangeId
     private static final Map<String, BigDecimal> AVAILABLE_CAPITAL = new ConcurrentHashMap<>();
@@ -74,6 +77,7 @@ public class CapitalServiceImpl implements CapitalService {
 
         CapitalAccountDTO dto = new CapitalAccountDTO();
         dto.setExchangeId(exchangeId);
+        dto.setExchangeName(getExchangeName(exchangeId));
         dto.setAvailable(available);
         dto.setFrozen(frozen);
         dto.setPositionValue(positionValue);
@@ -195,6 +199,19 @@ public class CapitalServiceImpl implements CapitalService {
 
     private String getKey(Long userId, Long exchangeId) {
         return userId + "_" + exchangeId;
+    }
+
+    /**
+     * 获取交易所名称
+     */
+    private String getExchangeName(Long exchangeId) {
+        try {
+            Exchange exchange = exchangeMapper.selectById(exchangeId);
+            return exchange != null ? exchange.getName() : "交易所 " + exchangeId;
+        } catch (Exception e) {
+            log.warn("获取交易所名称失败：exchangeId={}", exchangeId, e);
+            return "交易所 " + exchangeId;
+        }
     }
 
     /**
