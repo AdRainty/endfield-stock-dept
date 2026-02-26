@@ -11,12 +11,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [bootSequence, setBootSequence] = useState(true);
 
-  // 启动序列效果
-  useEffect(() => {
-    const timer = setTimeout(() => setBootSequence(false), 2000);
-    return () => clearTimeout(timer);
-  }, []);
-
   // 获取二维码
   const getQrCode = async () => {
     try {
@@ -31,6 +25,21 @@ const Login = () => {
       console.error("获取二维码失败", error);
     }
   };
+
+  const [hasInited, setHasInited] = useState(false);
+
+  // 启动序列效果
+  useEffect(() => {
+    const timer = setTimeout(() => setBootSequence(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 获取二维码
+  useEffect(() => {
+    if (bootSequence || hasInited) return;
+    setHasInited(true);
+    getQrCode();
+  }, [bootSequence, hasInited]);
 
   const pollQrStatus = (scene) => {
     const timer = setInterval(async () => {
@@ -56,10 +65,6 @@ const Login = () => {
 
     setTimeout(() => clearInterval(timer), 300000);
   };
-
-  useEffect(() => {
-    getQrCode();
-  }, []);
 
   const mockLogin = async () => {
     setLoading(true);
