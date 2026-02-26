@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Table, Button, Modal, Form, Input, Switch, message, Tag } from "antd";
-import { ExchangeOutlined, ShopOutlined, PlusOutlined, EditOutlined } from "@ant-design/icons";
+import { BankOutlined, ShopOutlined, PlusOutlined, EditOutlined } from "@ant-design/icons";
 import axios from "axios";
 
 const AdminExchange = () => {
@@ -305,7 +305,7 @@ const AdminExchange = () => {
       {/* 页面头部 */}
       <div className="page-header">
         <div className="header-title">
-          <ExchangeOutlined className="title-icon" />
+          <BankOutlined className="title-icon" />
           <div className="title-content">
             <h1 className="page-title-cn">交易所管理</h1>
             <span className="page-title-en">EXCHANGE MANAGEMENT</span>

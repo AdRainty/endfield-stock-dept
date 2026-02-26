@@ -12,7 +12,7 @@ import {
   MenuUnfoldOutlined,
   ThunderboltOutlined,
   DashboardOutlined,
-  ExchangeOutlined,
+  BankOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 
@@ -49,7 +49,7 @@ const BasicLayout = () => {
               },
               {
                 key: "/admin/exchange",
-                icon: <ExchangeOutlined />,
+                icon: <BankOutlined />,
                 label: <span>交易所管理 <span className="menu-sub">EXCHANGE MANAGEMENT</span></span>,
               },
             ],
