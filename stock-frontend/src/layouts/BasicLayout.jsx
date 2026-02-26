@@ -3,7 +3,6 @@ import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Layout, Menu, Avatar, Dropdown, message } from "antd";
 import {
   LineChartOutlined,
-  ShopOutlined,
   WalletOutlined,
   UserOutlined,
   SettingOutlined,
@@ -36,11 +35,6 @@ const BasicLayout = () => {
       key: "/market",
       icon: <LineChartOutlined />,
       label: <span>行情中心 <span className="menu-sub">MARKET</span></span>,
-    },
-    {
-      key: "/trade",
-      icon: <ShopOutlined />,
-      label: <span>交易委托 <span className="menu-sub">TRADE</span></span>,
     },
     {
       key: "/orders",
