@@ -67,9 +67,8 @@ public class AuthController {
                     qrScene.getAvatar(),
                     null
             );
-            // 生成 Sa-Token 并设置角色
+            // 生成 Sa-Token（角色由 StpInterface 自动获取）
             StpUtil.login(loginResponse.getUserId());
-            StpUtil.setRole(loginResponse.getRole());
             String token = StpUtil.getTokenValue();
 
             Map<String, Object> result = new HashMap<>();
