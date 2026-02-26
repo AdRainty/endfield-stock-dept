@@ -29,6 +29,18 @@ spring:
     time-zone: Asia/Shanghai
     date-format: yyyy-MM-dd HH:mm:ss
 
+# Redisson 配置
+redisson:
+  single-server-config:
+    address: "redis://${REDIS_HOST:localhost}:${REDIS_PORT:6379}"
+    password: ${REDIS_PASSWORD:}
+    database: 0
+    connection-minimum-idle-size: 10
+    connection-pool-size: 64
+    idle-connection-timeout: 10000
+    connect-timeout: 10000
+    timeout: 3000
+
 # MyBatis Plus 配置
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
