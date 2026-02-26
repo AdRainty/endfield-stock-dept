@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Select, Tag, Spin, Input, Button, message } from "antd";
 import { LineChartOutlined, CaretUpOutlined, CaretDownOutlined, DashboardOutlined, ShoppingOutlined } from "@ant-design/icons";
-import request from "../services/request";
+import axios from "axios";
 import KlineChart from "../components/KlineChart";
 
 const { Option } = Select;
@@ -34,7 +34,7 @@ const Market = () => {
   // 获取交易所列表
   const getExchanges = async () => {
     try {
-      const res = await request.get("/exchange/list");
+      const res = await axios.get("/api/exchange/list");
       if (res.data.code === 0) {
         setExchanges(res.data.data);
         if (res.data.data.length > 0) {
@@ -87,7 +87,7 @@ const Market = () => {
     if (!selectedExchange) return;
     setLoading(true);
     try {
-      const res = await request.get(`/exchange/${selectedExchange}/instruments`);
+      const res = await axios.get(`/api/exchange/${selectedExchange}/instruments`);
       if (res.data.code === 0) {
         const newData = res.data.data;
         updateInstruments(newData);
@@ -107,7 +107,7 @@ const Market = () => {
   const getOrderBook = async () => {
     if (!selectedExchange || !selectedInstrument) return;
     try {
-      const res = await request.get(`/market/orderbook/${selectedExchange}/${selectedInstrument}`);
+      const res = await axios.get(`/api/market/orderbook/${selectedExchange}/${selectedInstrument}`);
       if (res.data.code === 0) {
         setOrderBook(res.data.data);
       }
@@ -138,7 +138,7 @@ const Market = () => {
 
     setSubmitting(true);
     try {
-      const res = await request.post("/trade/order", {
+      const res = await axios.post("/api/trade/order", {
         exchangeId: selectedExchange,
         instrumentCode: selectedInstrument,
         orderType: orderType,
@@ -194,7 +194,7 @@ const Market = () => {
   useEffect(() => {
     if (selectedExchange) {
       const timer = setInterval(() => {
-        request.get(`/exchange/${selectedExchange}/instruments`)
+        axios.get(`/api/exchange/${selectedExchange}/instruments`)
           .then(res => {
             if (res.data.code === 0) {
               updateInstruments(res.data.data);
