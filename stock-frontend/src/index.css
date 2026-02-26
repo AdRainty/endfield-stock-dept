@@ -1962,24 +1962,24 @@ body {
 }
 
 .orders-table :global(.ant-table-thead > tr > th) {
-  background: var(--color-bg-tertiary);
-  color: var(--text-secondary);
+  background: rgba(255, 107, 53, 0.08);
+  color: var(--color-primary);
   font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 1px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid rgba(255, 107, 53, 0.2);
 }
 
 .orders-table :global(.ant-table-tbody > tr) {
-  background: var(--color-bg-secondary);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .orders-table :global(.ant-table-tbody > tr:hover) {
-  background: var(--color-bg-tertiary);
+  background: rgba(255, 107, 53, 0.05);
 }
 
 .orders-table :global(.ant-table-tbody > tr > td) {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--text-secondary);
   font-family: var(--font-mono);
   font-size: 13px;
