@@ -15,6 +15,7 @@ const Market = () => {
   const [loading, setLoading] = useState(false);
   const [flashState, setFlashState] = useState({});
   const [account, setAccount] = useState(null);
+  const [position, setPosition] = useState(null);
 
   // 交易相关状态
   const [orderType, setOrderType] = useState("BUY"); // BUY / SELL
@@ -120,6 +121,20 @@ const Market = () => {
     }
   };
 
+  // 获取持仓
+  const getPosition = async () => {
+    if (!selectedExchange || !selectedInstrument) return;
+    try {
+      const res = await axios.get(`/api/trade/position/${selectedExchange}`);
+      if (res.data.code === 0) {
+        const pos = res.data.data.find(p => p.instrumentCode === selectedInstrument);
+        setPosition(pos || null);
+      }
+    } catch (error) {
+      console.error("获取持仓失败", error);
+    }
+  };
+
   // 提交订单
   const handleSubmitOrder = async () => {
     if (!selectedExchange || !selectedInstrument) {
@@ -150,6 +165,23 @@ const Market = () => {
       return;
     }
 
+    // 买入时验证总额不超过可用资金
+    if (orderType === "BUY") {
+      const total = price * quantity;
+      if (account && total > account.available) {
+        message.warning("可用资金不足");
+        return;
+      }
+    }
+
+    // 卖出时验证数量不超过可用持仓
+    if (orderType === "SELL") {
+      if (position && quantity > position.availableQuantity) {
+        message.warning("可用持仓不足");
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       const res = await axios.post("/api/trade/order", {
@@ -164,6 +196,9 @@ const Market = () => {
         message.success(`${orderType === "BUY" ? "买入" : "卖出"}委托成功`);
         setOrderPrice("");
         setOrderQuantity("");
+        // 刷新资金和持仓
+        getAccount();
+        getPosition();
       }
     } catch (error) {
       console.error("下单失败", error);
@@ -203,6 +238,13 @@ const Market = () => {
       prevPricesRef.current = {}; // 重置价格引用
     }
   }, [selectedExchange]);
+
+  // 品种变化时加载持仓
+  useEffect(() => {
+    if (selectedExchange && selectedInstrument) {
+      getPosition(); // 获取持仓
+    }
+  }, [selectedExchange, selectedInstrument]);
 
   // 档口数据轮询
   useEffect(() => {
@@ -441,17 +483,22 @@ const Market = () => {
                 />
               </div>
 
-              <div className="trade-row trade-row-with-tag">
+              <div className="trade-row">
                 <span className="trade-label">总额</span>
                 <span className="trade-total">
                   {(parseFloat(orderPrice || 0) * parseFloat(orderQuantity || 0)).toFixed(2)}
                   <span className="trade-unit">CNY</span>
                 </span>
-                {account && (
-                  <Tag className="available-fund-tag">
-                    可用资金 {account.available?.toFixed(2)}
-                  </Tag>
-                )}
+              </div>
+
+              {/* 买入时显示可用资金，卖出时显示可用持仓 */}
+              <div className="trade-row balance-row">
+                <span className="trade-label">{orderType === "BUY" ? "可用资金" : "可用持仓"}</span>
+                <span className={`trade-balance ${orderType === "BUY" ? "balance-buy" : "balance-sell"}`}>
+                  {orderType === "BUY"
+                    ? `${account?.available?.toFixed(2) || "0.00"} CNY`
+                    : `${position?.availableQuantity?.toFixed(0) || "0"} 股`}
+                </span>
               </div>
 
               <Button
