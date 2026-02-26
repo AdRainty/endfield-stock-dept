@@ -3448,3 +3448,63 @@ body {
   color: var(--color-primary);
   font-weight: 600;
 }
+
+/* =====================
+   行情页面 - 交易时间状态
+   ===================== */
+.trading-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  margin-right: 16px;
+}
+
+.trading-status .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.trading-status.open .status-dot {
+  background: var(--color-fall);
+  box-shadow: 0 0 8px var(--color-fall);
+}
+
+.trading-status.closed .status-dot {
+  background: var(--text-tertiary);
+  box-shadow: none;
+  animation: none;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.trading-status .status-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.trading-status.open .status-text {
+  color: var(--color-fall);
+}
+
+.trading-status.closed .status-text {
+  color: var(--text-secondary);
+}
+
+.trading-status .status-time {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  padding-left: 8px;
+  border-left: 1px solid var(--border-color);
+}

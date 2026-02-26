@@ -16,6 +16,7 @@ const Market = () => {
   const [flashState, setFlashState] = useState({});
   const [account, setAccount] = useState(null);
   const [position, setPosition] = useState(null);
+  const [isTradingTime, setIsTradingTime] = useState(true);
 
   // 交易相关状态
   const [orderType, setOrderType] = useState("BUY"); // BUY / SELL
@@ -26,6 +27,20 @@ const Market = () => {
   const prevPricesRef = useRef({});
   const selectedInstrumentRef = useRef(null);
   const orderBookRef = useRef(null);
+
+  // 判断当前是否在交易时间内（9:30-15:00）
+  const checkTradingTime = () => {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const currentTime = hours * 60 + minutes;
+    const marketOpen = 9 * 60 + 30;  // 9:30
+    const marketClose = 15 * 60;     // 15:00
+
+    const inTradingTime = currentTime >= marketOpen && currentTime < marketClose;
+    setIsTradingTime(inTradingTime);
+    return inTradingTime;
+  };
 
   // 更新引用
   useEffect(() => {
@@ -246,26 +261,42 @@ const Market = () => {
     }
   }, [selectedExchange, selectedInstrument]);
 
-  // 档口数据轮询
+  // 档口数据轮询 - 仅在交易时间内更新
   useEffect(() => {
     if (selectedExchange && selectedInstrument) {
-      getOrderBook();
-      const timer = setInterval(getOrderBook, 3000);
+      // 初始检查交易时间
+      checkTradingTime();
+
+      // 交易时间内才获取档口数据
+      if (checkTradingTime()) {
+        getOrderBook();
+      }
+
+      const timer = setInterval(() => {
+        if (checkTradingTime()) {
+          getOrderBook();
+        }
+      }, 3000);
       return () => clearInterval(timer);
     }
   }, [selectedExchange, selectedInstrument]);
 
-  // 品种价格轮询（左侧列表）
+  // 品种价格轮询（左侧列表）- 仅在交易时间内更新
   useEffect(() => {
     if (selectedExchange) {
+      // 初始检查交易时间
+      checkTradingTime();
+
       const timer = setInterval(() => {
-        axios.get(`/api/exchange/${selectedExchange}/instruments`)
-          .then(res => {
-            if (res.data.code === 0) {
-              updateInstruments(res.data.data);
-            }
-          })
-          .catch(err => console.error("刷新品种失败", err));
+        if (checkTradingTime()) {
+          axios.get(`/api/exchange/${selectedExchange}/instruments`)
+            .then(res => {
+              if (res.data.code === 0) {
+                updateInstruments(res.data.data);
+              }
+            })
+            .catch(err => console.error("刷新品种失败", err));
+        }
       }, 3000);
       return () => clearInterval(timer);
     }
@@ -283,6 +314,14 @@ const Market = () => {
           </div>
         </div>
         <div className="header-controls">
+          {/* 交易时间状态显示 */}
+          <div className={`trading-status ${isTradingTime ? 'open' : 'closed'}`}>
+            <span className={`status-dot ${isTradingTime ? 'open' : 'closed'}`}></span>
+            <span className="status-text">
+              {isTradingTime ? '交易中' : '已收盘'}
+            </span>
+            <span className="status-time">09:30-15:00</span>
+          </div>
           <Select
             className="exchange-select"
             value={selectedExchange}
