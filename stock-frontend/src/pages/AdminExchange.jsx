@@ -373,7 +373,7 @@ const AdminExchange = () => {
       <Modal
         title={
           <div className="modal-title">
-            <ExchangeOutlined className="modal-icon" />
+            <BankOutlined className="modal-icon" />
             <span>{editingExchange ? "编辑交易所" : "添加交易所"}</span>
           </div>
         }
