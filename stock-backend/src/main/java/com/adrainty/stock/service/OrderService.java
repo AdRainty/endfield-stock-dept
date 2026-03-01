@@ -2,6 +2,7 @@ package com.adrainty.stock.service;
 
 import com.adrainty.stock.dto.OrderDTO;
 import com.adrainty.stock.dto.PlaceOrderRequest;
+import com.adrainty.stock.enums.OrderStatus;
 
 import java.util.List;
 
@@ -42,10 +43,20 @@ public interface OrderService {
     
     /**
      * 获取订单详情
-     * 
+     *
      * @param userId 用户 ID
      * @param orderNo 订单号
      * @return 订单 DTO
      */
     OrderDTO getOrderDetail(Long userId, String orderNo);
+
+    /**
+     * 批量撤单（用于日终清算）
+     *
+     * @param date 日期
+     * @param status 订单状态
+     * @param reason 撤单原因
+     * @return 撤单数量
+     */
+    int batchCancelOrders(java.time.LocalDate date, OrderStatus status, String reason);
 }

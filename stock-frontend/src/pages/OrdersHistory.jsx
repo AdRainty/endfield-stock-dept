@@ -9,6 +9,7 @@ const OrdersHistory = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [cancelling, setCancelling] = useState(null);
 
   const getOrders = async () => {
     setLoading(true);
@@ -40,6 +41,24 @@ const OrdersHistory = () => {
     setTimeout(() => {
       getOrders();
     }, 100);
+  };
+
+  const handleCancelOrder = async (orderNo) => {
+    try {
+      setCancelling(orderNo);
+      const res = await axios.post(`/api/trade/order/${orderNo}/cancel`);
+      if (res.data.code === 0) {
+        message.success("撤单成功");
+        getOrders();
+      } else {
+        message.error(res.data.message || "撤单失败");
+      }
+    } catch (error) {
+      console.error("撤单失败", error);
+      message.error(error.response?.data?.message || "撤单失败");
+    } finally {
+      setCancelling(null);
+    }
   };
 
   const orderColumns = [
@@ -134,6 +153,27 @@ const OrdersHistory = () => {
         </span>
       ),
     },
+    {
+      title: "操作",
+      key: "action",
+      width: 100,
+      render: (_, record) => {
+        const canCancel = record.status === "PENDING" || record.status === "PARTIALLY_FILLED";
+        if (!canCancel) {
+          return <span className="no-action">-</span>;
+        }
+        return (
+          <Button
+            size="small"
+            danger
+            onClick={() => handleCancelOrder(record.orderNo)}
+            loading={cancelling === record.orderNo}
+          >
+            撤单
+          </Button>
+        );
+      },
+    },
   ];
 
   const statusOptions = [
@@ -170,6 +210,9 @@ const OrdersHistory = () => {
           background: var(--color-bg-secondary) !important;
         }
         #root .ant-table-wrapper .ant-empty-description {
+          color: var(--text-tertiary) !important;
+        }
+        .no-action {
           color: var(--text-tertiary) !important;
         }
       `}</style>
@@ -227,7 +270,7 @@ const OrdersHistory = () => {
             showTotal: (total) => `共 ${total} 条记录`,
           }}
           loading={loading}
-          scroll={{ x: 1400 }}
+          scroll={{ x: 1500 }}
           className="orders-table"
         />
       </div>

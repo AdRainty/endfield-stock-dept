@@ -59,4 +59,14 @@ public interface OrderMapper extends BaseMapper<Order> {
     List<Order> findByUserIdAndExchangeIdAndInstrumentCodeAndStatus(
         @Param("userId") Long userId, @Param("exchangeId") Long exchangeId,
         @Param("instrumentCode") String instrumentCode, @Param("status") OrderStatus status);
+
+    /**
+     * 查询当日未成交的订单
+     *
+     * @param date 日期
+     * @param status 订单状态
+     * @return 订单列表
+     */
+    @Select("SELECT * FROM order_book WHERE DATE(order_time) = #{date} AND status IN (#{status}, 'PARTIALLY_FILLED')")
+    List<Order> findPendingOrdersByDate(@Param("date") java.time.LocalDate date, @Param("status") OrderStatus status);
 }

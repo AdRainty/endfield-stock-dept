@@ -20,10 +20,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * 订单服务实现类
@@ -211,5 +211,47 @@ public class OrderServiceImpl implements OrderService {
         dto.setOrderTime(order.getOrderTime());
         dto.setFilledTime(order.getFilledTime());
         return dto;
+    }
+
+    @Override
+    @Transactional
+    public int batchCancelOrders(LocalDate date, OrderStatus status, String reason) {
+        List<Order> pendingOrders = orderMapper.findPendingOrdersByDate(date, status);
+
+        int cancelledCount = 0;
+        for (Order order : pendingOrders) {
+            try {
+                // 检查订单是否仍然在 orderBook 中（未被撮合）
+                if (order.getStatus() == OrderStatus.FILLED || order.getStatus() == OrderStatus.CANCELLED) {
+                    continue;
+                }
+
+                // 解冻资金或持仓
+                if (order.getOrderType() == OrderType.BUY) {
+                    BigDecimal remainingAmount = order.getPrice().multiply(order.getUnfilledQuantity());
+                    capitalService.unfreezeCapital(order.getUserId(), order.getExchangeId(), remainingAmount, order.getOrderNo());
+                } else {
+                    unfreezePosition(order.getUserId(), order.getExchangeId(), order.getInstrumentCode(), order.getUnfilledQuantity());
+                }
+
+                // 从订单簿中移除
+                orderBookService.removeOrder(order.getExchangeId(), order.getInstrumentCode(),
+                    order.getId(), order.getUnfilledQuantity());
+
+                // 更新订单状态
+                order.setStatus(OrderStatus.CANCELLED);
+                order.setCancelledTime(LocalDateTime.now());
+                order.setCancelReason(reason);
+                orderMapper.updateById(order);
+
+                cancelledCount++;
+                log.info("日终自动撤单：userId={}, orderNo={}, reason={}", order.getUserId(), order.getOrderNo(), reason);
+            } catch (Exception e) {
+                log.error("日终自动撤单失败：userId={}, orderNo={}", order.getUserId(), order.getOrderNo(), e);
+            }
+        }
+
+        log.info("日终自动撤单完成：日期={}, 撤单数量={}", date, cancelledCount);
+        return cancelledCount;
     }
 }
