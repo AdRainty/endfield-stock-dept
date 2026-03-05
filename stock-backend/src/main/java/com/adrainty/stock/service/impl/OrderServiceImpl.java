@@ -12,6 +12,7 @@ import com.adrainty.stock.mapper.InstrumentMapper;
 import com.adrainty.stock.mapper.OrderMapper;
 import com.adrainty.stock.mapper.UserPositionMapper;
 import com.adrainty.stock.service.CapitalService;
+import com.adrainty.stock.service.MatchingEngineService;
 import com.adrainty.stock.service.OrderBookService;
 import com.adrainty.stock.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,7 @@ public class OrderServiceImpl implements OrderService {
     private final InstrumentMapper instrumentMapper;
     private final UserPositionMapper userPositionMapper;
     private final OrderBookService orderBookService;
+    private final MatchingEngineService matchingEngineService;
     private final CapitalService capitalService;
 
     @Override
@@ -90,12 +92,14 @@ public class OrderServiceImpl implements OrderService {
             freezePosition(userId, request.getExchangeId(), request.getInstrumentCode(), request.getQuantity());
         }
 
+        // 使用新撮合引擎添加订单到队列
+        long timestamp = System.currentTimeMillis();
         if (request.getOrderType() == OrderType.BUY) {
-            orderBookService.addBidOrder(request.getExchangeId(), request.getInstrumentCode(),
-                request.getPrice(), request.getQuantity(), order.getId());
+            matchingEngineService.addBidOrder(request.getExchangeId(), request.getInstrumentCode(),
+                request.getPrice(), request.getQuantity(), order.getId(), timestamp);
         } else {
-            orderBookService.addAskOrder(request.getExchangeId(), request.getInstrumentCode(),
-                request.getPrice(), request.getQuantity(), order.getId());
+            matchingEngineService.addAskOrder(request.getExchangeId(), request.getInstrumentCode(),
+                request.getPrice(), request.getQuantity(), order.getId(), timestamp);
         }
 
         log.info("下单成功：userId={}, orderNo={}, type={}, price={}, quantity={}",
@@ -131,8 +135,8 @@ public class OrderServiceImpl implements OrderService {
             unfreezePosition(userId, order.getExchangeId(), order.getInstrumentCode(), order.getUnfilledQuantity());
         }
 
-        orderBookService.removeOrder(order.getExchangeId(), order.getInstrumentCode(),
-            order.getId(), order.getUnfilledQuantity());
+        // 从撮合引擎移除订单
+        matchingEngineService.removeOrder(order.getExchangeId(), order.getInstrumentCode(), order.getId());
 
         orderMapper.updateById(order);
 

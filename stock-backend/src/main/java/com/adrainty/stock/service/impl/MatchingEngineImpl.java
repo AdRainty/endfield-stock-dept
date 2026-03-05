@@ -117,8 +117,17 @@ public class MatchingEngineImpl implements OrderBookService {
 
     @Override
     public List<OrderBookDTO> getAllOrderBooks() {
-        // TODO: 需要实现获取所有品种的档口
-        return new ArrayList<>();
+        List<OrderBookDTO> result = new ArrayList<>();
+
+        // 获取所有品种
+        List<Instrument> instruments = instrumentMapper.findAll();
+
+        for (Instrument instrument : instruments) {
+            OrderBookDTO dto = buildOrderBookDTO(instrument.getExchangeId(), instrument.getInstrumentCode());
+            result.add(dto);
+        }
+
+        return result;
     }
 
     /**

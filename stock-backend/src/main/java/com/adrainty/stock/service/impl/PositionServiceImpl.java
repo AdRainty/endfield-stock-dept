@@ -82,39 +82,7 @@ public class PositionServiceImpl implements PositionService {
         }
     }
 
-    /**
-     * 转换为 DTO
-     */
-    private PositionDTO convertToDTO(UserPosition position) {
-        PositionDTO dto = new PositionDTO();
-        dto.setId(position.getId());
-        dto.setExchangeId(position.getExchangeId());
-        dto.setInstrumentCode(position.getInstrumentCode());
-        dto.setQuantity(position.getQuantity());
-        dto.setAvailableQuantity(position.getAvailableQuantity());
-        dto.setFrozenQuantity(position.getFrozenQuantity());
-        dto.setCostPrice(position.getCostPrice());
-        dto.setCostAmount(position.getCostAmount());
-        dto.setLatestPrice(position.getLatestPrice());
-
-        // 计算市值
-        dto.setMarketValue(position.getQuantity().multiply(position.getLatestPrice()));
-        dto.setProfitLoss(position.getProfitLoss());
-        dto.setProfitLossRate(position.getProfitLossRate());
-
-        // 获取品种名称
-        Instrument instrument = instrumentMapper.findByInstrumentCode(position.getInstrumentCode());
-        if (instrument != null) {
-            dto.setInstrumentName(instrument.getName());
-            dto.setExchangeName(instrument.getExchangeId().toString());
-        }
-
-        return dto;
-    }
-
-    /**
-     * 更新持仓（买入）
-     */
+    @Override
     @Transactional
     public void increasePosition(Long userId, Long exchangeId, String instrumentCode,
                                   BigDecimal quantity, BigDecimal price) {
@@ -150,9 +118,7 @@ public class PositionServiceImpl implements PositionService {
         userPositionMapper.updateById(position);
     }
 
-    /**
-     * 更新持仓（卖出）
-     */
+    @Override
     @Transactional
     public void decreasePosition(Long userId, Long exchangeId, String instrumentCode,
                                   BigDecimal quantity, BigDecimal price) {
@@ -184,5 +150,35 @@ public class PositionServiceImpl implements PositionService {
         }
 
         userPositionMapper.updateById(position);
+    }
+
+    /**
+     * 转换为 DTO
+     */
+    private PositionDTO convertToDTO(UserPosition position) {
+        PositionDTO dto = new PositionDTO();
+        dto.setId(position.getId());
+        dto.setExchangeId(position.getExchangeId());
+        dto.setInstrumentCode(position.getInstrumentCode());
+        dto.setQuantity(position.getQuantity());
+        dto.setAvailableQuantity(position.getAvailableQuantity());
+        dto.setFrozenQuantity(position.getFrozenQuantity());
+        dto.setCostPrice(position.getCostPrice());
+        dto.setCostAmount(position.getCostAmount());
+        dto.setLatestPrice(position.getLatestPrice());
+
+        // 计算市值
+        dto.setMarketValue(position.getQuantity().multiply(position.getLatestPrice()));
+        dto.setProfitLoss(position.getProfitLoss());
+        dto.setProfitLossRate(position.getProfitLossRate());
+
+        // 获取品种名称
+        Instrument instrument = instrumentMapper.findByInstrumentCode(position.getInstrumentCode());
+        if (instrument != null) {
+            dto.setInstrumentName(instrument.getName());
+            dto.setExchangeName(instrument.getExchangeId().toString());
+        }
+
+        return dto;
     }
 }

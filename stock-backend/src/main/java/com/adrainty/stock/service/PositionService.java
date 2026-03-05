@@ -2,6 +2,7 @@ package com.adrainty.stock.service;
 
 import com.adrainty.stock.dto.PositionDTO;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -46,4 +47,28 @@ public interface PositionService {
      * @param exchangeId 交易所 ID
      */
     void initPosition(Long userId, Long exchangeId);
+
+    /**
+     * 增加持仓（买入成交）
+     *
+     * @param userId 用户 ID
+     * @param exchangeId 交易所 ID
+     * @param instrumentCode 品种代码
+     * @param quantity 数量
+     * @param price 价格
+     */
+    void increasePosition(Long userId, Long exchangeId, String instrumentCode,
+                          BigDecimal quantity, BigDecimal price);
+
+    /**
+     * 减少持仓（卖出成交）
+     *
+     * @param userId 用户 ID
+     * @param exchangeId 交易所 ID
+     * @param instrumentCode 品种代码
+     * @param quantity 数量
+     * @param price 价格
+     */
+    void decreasePosition(Long userId, Long exchangeId, String instrumentCode,
+                          BigDecimal quantity, BigDecimal price);
 }

@@ -53,4 +53,12 @@ public interface InstrumentMapper extends BaseMapper<Instrument> {
      */
     @Select("SELECT * FROM instrument WHERE exchange_id = #{exchangeId} AND status = #{status}")
     List<Instrument> findByExchangeIdAndStatus(@Param("exchangeId") Long exchangeId, @Param("status") Integer status);
+
+    /**
+     * 查找所有品种
+     *
+     * @return 品种列表
+     */
+    @Select("SELECT * FROM instrument")
+    List<Instrument> findAll();
 }
