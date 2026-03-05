@@ -6,6 +6,7 @@ import com.adrainty.stock.mapper.InstrumentMapper;
 import com.adrainty.stock.mapper.NewsMapper;
 import com.adrainty.stock.service.NewsService;
 import com.adrainty.stock.util.EndfieldWorldView;
+import com.adrainty.stock.util.EndfieldWorldView.ExchangeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
