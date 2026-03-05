@@ -1,0 +1,110 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1.0.4-add-news-table
+      author: adrainty
+      comment: 添加新闻表
+      changes:
+        - createTable:
+            tableName: news
+            remarks: 新闻表
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: false
+                  remarks: 新闻标题
+              - column:
+                  name: content
+                  type: TEXT
+                  constraints:
+                    nullable: false
+                  remarks: 新闻内容
+              - column:
+                  name: exchange_id
+                  type: BIGINT
+                  remarks: 所属交易所 ID（0-通用，1-四号谷底，2-武陵）
+              - column:
+                  name: instrument_code
+                  type: VARCHAR(50)
+                  remarks: 关联品种代码
+              - column:
+                  name: news_type
+                  type: INTEGER
+                  remarks: 新闻类型（1-早报，2-晚报，3-实时新闻）
+              - column:
+                  name: sentiment_level
+                  type: INTEGER
+                  remarks: 利好利空等级（-3 重大利空，-2 利空，-1 偏空，0 中性，1 利好，2 重大利好）
+              - column:
+                  name: impact_percent
+                  type: DOUBLE PRECISION
+                  remarks: 影响幅度百分比（-30% 到 30%）
+              - column:
+                  name: processed
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  remarks: 是否已处理
+              - column:
+                  name: publish_time
+                  type: TIMESTAMP
+                  remarks: 发布时间
+              - column:
+                  name: source
+                  type: VARCHAR(100)
+                  remarks: 来源（AI 生成/网络抓取）
+              - column:
+                  name: reference_ids
+                  type: TEXT
+                  remarks: 参考新闻 ID 列表（JSON 数组）
+              - column:
+                  name: created_by
+                  type: VARCHAR(100)
+                  remarks: 创建人
+              - column:
+                  name: created_time
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: 创建时间
+              - column:
+                  name: updated_by
+                  type: VARCHAR(100)
+                  remarks: 更新人
+              - column:
+                  name: updated_time
+                  type: TIMESTAMP
+                  remarks: 更新时间
+        - addSql:
+            sql: COMMENT ON COLUMN news.sentiment_level IS '利好利空等级：-3-重大利空 -2-利空 -1-偏空 0-中性 1-利好 2-重大利好';
+        - addSql:
+            sql: COMMENT ON COLUMN news.impact_percent IS '影响幅度百分比：-30% 到 30%，根据 sentiment_level 计算';
+        - createIndex:
+            indexName: idx_news_exchange_id
+            tableName: news
+            columns:
+              - column:
+                  name: exchange_id
+        - createIndex:
+            indexName: idx_news_instrument_code
+            tableName: news
+            columns:
+              - column:
+                  name: instrument_code
+        - createIndex:
+            indexName: idx_news_publish_time
+            tableName: news
+            columns:
+              - column:
+                  name: publish_time
+        - createIndex:
+            indexName: idx_news_processed
+            tableName: news
+            columns:
+              - column:
+                  name: processed

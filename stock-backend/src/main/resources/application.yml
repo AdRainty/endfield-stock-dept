@@ -29,6 +29,23 @@ spring:
     time-zone: Asia/Shanghai
     date-format: yyyy-MM-dd HH:mm:ss
 
+  # Spring AI 配置
+  ai:
+    # OpenAI 配置（可使用兼容 API 的服务）
+    openai:
+      api-key: ${OPENAI_API_KEY:your-api-key}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-4o-mini}
+          temperature: 0.7
+          max-tokens: 2000
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+    # MCP 配置
+    mcp:
+      client:
+        enabled: ${MCP_ENABLED:false}
+        server-url: ${MCP_SERVER_URL:http://localhost:8080/mcp}
+
 # Redisson 配置
 redisson:
   single-server-config:
@@ -83,6 +100,8 @@ knife4j:
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    org.springframework.ai: DEBUG
 
 # 自定义配置
 app:
@@ -98,3 +117,29 @@ app:
       id: 2
       name: 武陵
       code: WULING
+
+  # 交易时间配置
+  trading:
+    # 早盘开始时间
+    morning-open: "09:30"
+    # 早盘结束时间
+    morning-close: "11:30"
+    # 午盘开始时间
+    afternoon-open: "13:00"
+    # 午盘结束时间
+    afternoon-close: "15:00"
+    # 集合竞价时间
+    call-auction: "09:15"
+    # 禁止撤单开始时间
+    night-cancel-start: "20:00"
+
+  # 新闻生成配置
+  news:
+    # 早报生成时间
+    morning-time: "08:30"
+    # 晚报生成时间
+    evening-time: "21:00"
+    # 参考新闻数量
+    reference-count: 10
+    # 最大影响幅度
+    max-impact-percent: 30

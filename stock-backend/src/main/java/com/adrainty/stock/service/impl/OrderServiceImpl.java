@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -43,6 +44,10 @@ public class OrderServiceImpl implements OrderService {
     private final OrderBookService orderBookService;
     private final MatchingEngineService matchingEngineService;
     private final CapitalService capitalService;
+
+    // 禁止撤单时间段
+    private static final LocalTime NIGHT_CANCEL_START = LocalTime.of(20, 0);
+    private static final LocalTime MORNING_CANCEL_END = LocalTime.of(9, 30);
 
     @Override
     @Transactional
@@ -122,6 +127,14 @@ public class OrderServiceImpl implements OrderService {
 
         if (order.getStatus() == OrderStatus.FILLED || order.getStatus() == OrderStatus.CANCELLED) {
             throw BusinessException.of("该订单无法撤单");
+        }
+
+        // 检查是否在禁止撤单时间段（20:00 - 次日 9:30）
+        LocalDateTime now = LocalDateTime.now();
+        LocalTime currentTime = now.toLocalTime();
+
+        if (currentTime.isAfter(NIGHT_CANCEL_START) || currentTime.isBefore(MORNING_CANCEL_END)) {
+            throw BusinessException.of("当前时间为禁止撤单时段（20:00-次日 9:30），无法撤单");
         }
 
         order.setStatus(OrderStatus.CANCELLED);

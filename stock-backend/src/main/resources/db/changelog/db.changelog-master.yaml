@@ -11,3 +11,6 @@ databaseChangeLog:
   - include:
       file: 1.0.3-add-user-capital.yaml
       relativeToChangelogFile: true
+  - include:
+      file: 1.0.4-add-news-table.yaml
+      relativeToChangelogFile: true
