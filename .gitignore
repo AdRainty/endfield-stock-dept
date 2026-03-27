@@ -18,6 +18,10 @@ stock-backend/mvnw.cmd
 *.log
 npm-debug.log*
 
+*-prod.yml
+*-prod.yaml
+*-prod.properties
+
 # OS
 .DS_Store
 Thumbs.db
