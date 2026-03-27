@@ -80,9 +80,9 @@ databaseChangeLog:
                   name: updated_time
                   type: TIMESTAMP
                   remarks: 更新时间
-        - addSql:
+        - sql:
             sql: COMMENT ON COLUMN news.sentiment_level IS '利好利空等级：-3-重大利空 -2-利空 -1-偏空 0-中性 1-利好 2-重大利好';
-        - addSql:
+        - sql:
             sql: COMMENT ON COLUMN news.impact_percent IS '影响幅度百分比：-30% 到 30%，根据 sentiment_level 计算';
         - createIndex:
             indexName: idx_news_exchange_id

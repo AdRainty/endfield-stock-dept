@@ -6,6 +6,7 @@ import com.adrainty.stock.dto.UserDTO;
 import com.adrainty.stock.entity.TradeRecord;
 import com.adrainty.stock.entity.User;
 import com.adrainty.stock.entity.UserPosition;
+import com.adrainty.stock.enums.UserRole;
 import com.adrainty.stock.mapper.TradeRecordMapper;
 import com.adrainty.stock.mapper.UserMapper;
 import com.adrainty.stock.mapper.UserPositionMapper;
@@ -63,6 +64,21 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findByOpenid(String openid) {
         return userMapper.findByWechatOpenid(openid);
+    }
+
+    @Override
+    @Transactional
+    public User register(String openid) {
+        log.info("注册用户：{}", openid);
+        User user = new User();
+        user.setWechatOpenid(openid);
+        user.setNickname("用户" + openid.substring(0, 8));
+        user.setAvatar("");
+        user.setRole(UserRole.USER);
+        user.setAvailableCapital(new BigDecimal("100000"));
+        user.setLockedCapital(BigDecimal.ZERO);
+        userMapper.insert(user);
+        return user;
     }
 
     @Override

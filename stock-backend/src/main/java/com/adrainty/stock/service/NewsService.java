@@ -12,20 +12,14 @@ import java.util.List;
 public interface NewsService {
 
     /**
-     * 生成早报新闻
-     *
-     * @param exchangeId 交易所 ID
-     * @return 生成的新闻
+     * 生成早报新闻（两个交易所）
      */
-    News generateMorningNews(Long exchangeId);
+    void generateMorningNews();
 
     /**
-     * 生成晚报新闻
-     *
-     * @param exchangeId 交易所 ID
-     * @return 生成的新闻
+     * 生成晚报新闻（两个交易所）
      */
-    News generateEveningNews(Long exchangeId);
+    void generateEveningNews();
 
     /**
      * 分析新闻对品种的利好利空程度

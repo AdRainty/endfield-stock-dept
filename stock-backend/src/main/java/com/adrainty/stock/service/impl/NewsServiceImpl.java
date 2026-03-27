@@ -16,6 +16,7 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,13 +34,20 @@ import java.util.*;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class NewsServiceImpl implements NewsService {
 
     private final NewsMapper newsMapper;
     private final InstrumentMapper instrumentMapper;
-    private final ChatClient chatClient;
     private final ObjectMapper objectMapper;
+
+    @Autowired(required = false)
+    private ChatClient chatClient;
+
+    public NewsServiceImpl(NewsMapper newsMapper, InstrumentMapper instrumentMapper, ObjectMapper objectMapper) {
+        this.newsMapper = newsMapper;
+        this.instrumentMapper = instrumentMapper;
+        this.objectMapper = objectMapper;
+    }
 
     // 新闻类型
     private static final int TYPE_MORNING = 1;
@@ -84,17 +92,19 @@ public class NewsServiceImpl implements NewsService {
     @Override
     @Scheduled(cron = "0 30 8 * * ?")
     @Transactional
-    public News generateMorningNews(Long exchangeId) {
-        log.info("开始生成早报新闻，交易所：{}", exchangeId);
-        return generateNews(TYPE_MORNING, exchangeId, "早报");
+    public void generateMorningNews() {
+        log.info("开始生成早报新闻");
+        generateNews(TYPE_MORNING, 1L, "早报");
+        generateNews(TYPE_MORNING, 2L, "早报");
     }
 
     @Override
     @Scheduled(cron = "0 0 21 * * ?")
     @Transactional
-    public News generateEveningNews(Long exchangeId) {
-        log.info("开始生成晚报新闻，交易所：{}", exchangeId);
-        return generateNews(TYPE_EVENING, exchangeId, "晚报");
+    public void generateEveningNews() {
+        log.info("开始生成晚报新闻");
+        generateNews(TYPE_EVENING, 1L, "晚报");
+        generateNews(TYPE_EVENING, 2L, "晚报");
     }
 
     /**

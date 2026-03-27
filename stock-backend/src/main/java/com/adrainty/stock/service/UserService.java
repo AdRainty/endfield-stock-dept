@@ -41,6 +41,14 @@ public interface UserService {
     User findByOpenid(String openid);
 
     /**
+     * 注册用户
+     *
+     * @param openid 微信 OpenID
+     * @return 用户对象
+     */
+    User register(String openid);
+
+    /**
      * 更新用户登录信息
      *
      * @param user 用户对象

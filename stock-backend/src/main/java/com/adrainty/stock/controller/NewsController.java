@@ -68,23 +68,21 @@ public class NewsController {
     /**
      * 手动触发早报生成
      */
-    @Operation(summary = "生成早报", description = "手动触发早报新闻生成")
-    @PostMapping("/generate/morning/{exchangeId}")
-    public ResponseEntity<GlobalExceptionHandler.ApiResult<NewsDTO>> generateMorningNews(
-            @PathVariable Long exchangeId) {
-        News news = newsService.generateMorningNews(exchangeId);
-        return ResponseEntity.ok(GlobalExceptionHandler.ApiResult.success(convertToDTO(news)));
+    @Operation(summary = "生成早报", description = "手动触发早报新闻生成（两个交易所）")
+    @PostMapping("/generate/morning")
+    public ResponseEntity<GlobalExceptionHandler.ApiResult<String>> generateMorningNews() {
+        newsService.generateMorningNews();
+        return ResponseEntity.ok(GlobalExceptionHandler.ApiResult.success("早报已生成"));
     }
 
     /**
      * 手动触发晚报生成
      */
-    @Operation(summary = "生成晚报", description = "手动触发晚报新闻生成")
-    @PostMapping("/generate/evening/{exchangeId}")
-    public ResponseEntity<GlobalExceptionHandler.ApiResult<NewsDTO>> generateEveningNews(
-            @PathVariable Long exchangeId) {
-        News news = newsService.generateEveningNews(exchangeId);
-        return ResponseEntity.ok(GlobalExceptionHandler.ApiResult.success(convertToDTO(news)));
+    @Operation(summary = "生成晚报", description = "手动触发晚报新闻生成（两个交易所）")
+    @PostMapping("/generate/evening")
+    public ResponseEntity<GlobalExceptionHandler.ApiResult<String>> generateEveningNews() {
+        newsService.generateEveningNews();
+        return ResponseEntity.ok(GlobalExceptionHandler.ApiResult.success("晚报已生成"));
     }
 
     /**

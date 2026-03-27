@@ -81,6 +81,36 @@ public class AuthController {
     }
 
     /**
+     * 快捷登录（测试用）
+     */
+    @Operation(summary = "快捷登录", description = "测试环境快速登录接口")
+    @PostMapping("/quick-login")
+    public ResponseEntity<GlobalExceptionHandler.ApiResult<Map<String, Object>>> quickLogin(
+            @RequestBody Map<String, String> request) {
+        String username = request.get("username");
+        if (username == null || username.isEmpty()) {
+            username = "testuser";
+        }
+
+        User user = userService.findByOpenid("test_" + username);
+        if (user == null) {
+            // 自动注册用户
+            user = userService.register("test_" + username);
+        }
+
+        StpUtil.login(user.getId());
+        String token = StpUtil.getTokenValue();
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("userId", user.getId());
+        result.put("nickname", user.getNickname());
+        result.put("avatar", user.getAvatar());
+        result.put("role", user.getRole().getCode());
+        result.put("token", token);
+        return ResponseEntity.ok(GlobalExceptionHandler.ApiResult.success(result));
+    }
+
+    /**
      * 退出登录
      */
     @Operation(summary = "退出登录", description = "登出当前用户")

@@ -29,35 +29,6 @@ spring:
     time-zone: Asia/Shanghai
     date-format: yyyy-MM-dd HH:mm:ss
 
-  # Spring AI 配置
-  ai:
-    # OpenAI 配置（可使用兼容 API 的服务）
-    openai:
-      api-key: ${OPENAI_API_KEY:your-api-key}
-      chat:
-        options:
-          model: ${OPENAI_MODEL:gpt-4o-mini}
-          temperature: 0.7
-          max-tokens: 2000
-      base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
-    # MCP 配置
-    mcp:
-      client:
-        enabled: ${MCP_ENABLED:false}
-        server-url: ${MCP_SERVER_URL:http://localhost:8080/mcp}
-
-# Redisson 配置
-redisson:
-  single-server-config:
-    address: "redis://${REDIS_HOST:localhost}:${REDIS_PORT:6379}"
-    password: ${REDIS_PASSWORD:}
-    database: 0
-    connection-minimum-idle-size: 10
-    connection-pool-size: 64
-    idle-connection-timeout: 10000
-    connect-timeout: 10000
-    timeout: 3000
-
 # MyBatis Plus 配置
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
@@ -102,21 +73,6 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
   level:
     org.springframework.ai: DEBUG
-
-# 自定义配置
-app:
-  # 交易所配置
-  exchange:
-    # 四号谷底交易所
-    valley:
-      id: 1
-      name: 四号谷底
-      code: VALLEY
-    # 武陵交易所
-    wuling:
-      id: 2
-      name: 武陵
-      code: WULING
 
   # 交易时间配置
   trading:
