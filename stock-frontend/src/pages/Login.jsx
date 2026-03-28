@@ -72,14 +72,10 @@ const Login = () => {
   const mockLogin = async () => {
     setLoading(true);
     try {
-      const res = await axios.post("/api/auth/wx-login", {
-        code: "mock_code_" + Date.now(),
-        nickname: "测试用户",
-        avatar: "",
-      });
+      const res = await axios.post("/api/auth/quick-login", {});
       if (res.data.code === 0) {
         localStorage.setItem("token", res.data.data.token);
-        localStorage.setItem("user", JSON.stringify(res.data.data.user));
+        localStorage.setItem("user", JSON.stringify(res.data.data));
         message.success("登录成功");
         navigate("/");
       }
