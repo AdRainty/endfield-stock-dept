@@ -24,7 +24,18 @@ const BasicLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  
+  // 安全解析用户信息
+  const getUser = () => {
+    try {
+      const userStr = localStorage.getItem("user");
+      if (!userStr || userStr === "undefined") return {};
+      return JSON.parse(userStr);
+    } catch (e) {
+      return {};
+    }
+  };
+  const user = getUser();
 
   const menuItems = [
     {
