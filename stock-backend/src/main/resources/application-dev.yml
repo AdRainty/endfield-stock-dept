@@ -38,10 +38,10 @@ mybatis-plus:
 # 微信公众号配置（用于扫码登录）
 wechat:
   mp:
-    app-id: ${WECHAT_MP_APP_ID:wxcde29822ab2e6740}
-    app-secret: ${WECHAT_MP_APP_SECRET:42388141e369e00657b88b433a207b4b}
-    token: ${WECHAT_MP_TOKEN:adraintyToken871837050}
-    aes-key: ${WECHAT_MP_AES_KEY:YGsaMqBjh0rakedhw72wZ8Q0zEbiJybkhwQGQGIBAli}
+    app-id: ${WECHAT_MP_APP_ID:}
+    app-secret: ${WECHAT_MP_APP_SECRET:}
+    token: ${WECHAT_MP_TOKEN:}
+    aes-key: ${WECHAT_MP_AES_KEY:}
 
 logging:
   level:
