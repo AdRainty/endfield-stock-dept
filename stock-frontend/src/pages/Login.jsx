@@ -77,7 +77,7 @@ const Login = () => {
         localStorage.setItem("token", res.data.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.data));
         message.success("登录成功");
-        navigate("/");
+        navigate("/welcome");
       }
     } catch (error) {
       message.error("登录失败：" + (error.response?.data?.message || "未知错误"));
